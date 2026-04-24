@@ -1,0 +1,46 @@
+🔥 The Forge Suite
+1. WarmForge – Inbox Warm-Up Network
+
+Private warm-up pool under your control
+
+Automated reply threads to build sender reputation
+
+Domain/IP health management before campaigns go live
+
+2. SendForge – Cold Outreach Engine
+
+Granular throttling: send X emails every Y minutes
+
+Rotate across domains, mailboxes, and ESPs
+
+ESP filtering (skip Outlook, delay Yahoo, throttle Gmail)
+
+Unified Inbox (Unibox) for all replies
+
+3. ReplyForge – Engagement & Response Automation
+
+Centralize and classify replies (positive, referral, unsubscribe, etc.)
+
+AI-powered autoresponders and draft replies
+
+CRM/Slack integration to move hot leads instantly
+
+4. ListForge – Prospecting & Enrichment
+
+Scrape leads from LinkedIn, Crunchbase, Reddit, niche sources
+
+Auto-enrich with verified emails and firmographics
+
+Push directly into SendForge queue
+
+GPT-driven personalization snippets for first lines
+
+5. TrackForge – Deliverability & Analytics
+
+Inbox placement testing across Gmail, Outlook, Yahoo
+
+Monitor SPF/DKIM/DMARC and blacklist status
+
+ESP health scoring (pause or reroute by provider)
+
+Suite-wide analytics dashboard for WarmForge + SendForge

@@ -1,0 +1,1131 @@
+{
+  "createdAt": "2025-08-15T15:36:46.177Z",
+  "updatedAt": "2025-08-31T15:18:15.262Z",
+  "id": "OhPyZvhSoecWaoKZ",
+  "name": "WarmForge - WATCHER Migadu Wayne",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Wayne\n### [Migadu WebMail](https://webmail.migadu.com/)\n### wayne@togetherclean.com",
+        "height": 304,
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -752,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "6651bb55-759b-43f1-8e6e-3f2aa064d29d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "options": {
+          "customEmailConfig": "[\"UNSEEN\"]",
+          "forceReconnect": 60
+        }
+      },
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.1,
+      "position": [
+        -720,
+        -64
+      ],
+      "id": "b998fe84-8269-4f46-a8e6-1e208ab34a22",
+      "name": "Watcher",
+      "credentials": {
+        "imap": {
+          "id": "tWLkWrX23HrVMxqz",
+          "name": "MIGADU IMAP  wayne@togetherclean.com"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        -272
+      ],
+      "id": "f383734d-6e61-4cea-ae6c-0e62038f78cf",
+      "name": "When clicking ‘Execute workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "SendPoolA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -496,
+        -160
+      ],
+      "id": "294c46c9-06a5-474d-a873-01e3f9712283",
+      "name": "Get All Senders",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6a2e203f-b617-4dac-a749-9d1e7e497f16",
+              "leftValue": "={{ $json.is_known_sender }}",
+              "rightValue": "={{ $json.sender_addresses }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        0
+      ],
+      "id": "ec3f1d8a-0d6c-4f87-8bc8-4a27a3b3b96e",
+      "name": "If From Sender"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2a215e40-2e25-4b87-8487-bcccbd73e452",
+              "leftValue": "={{ $json.metadata['x-wf-thread'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        544,
+        -64
+      ],
+      "id": "baf8f4da-0674-463e-9fcc-57ace30eb547",
+      "name": "If Thread MetaData"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "27d0823a-3fc3-4db5-8c2d-adb18d7eaae3",
+              "leftValue": "={{ $json.reply_type }}",
+              "rightValue": "single",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1136,
+        -208
+      ],
+      "id": "7d5f7a2f-5416-44e8-bd3c-0a1f7329f27a",
+      "name": "If Reply Type Single"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.thread_index }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    },
+                    "id": "c72d8d18-ca65-4865-884d-49969dcc8e20"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Index Zero"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6a315285-b029-41fe-88d6-6f76053ef9a5",
+                    "leftValue": "={{ $json.thread_index }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Index Greater Than Zero"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1408,
+        -96
+      ],
+      "id": "077610bd-446c-48b4-b41c-b307cdec4504",
+      "name": "Thread Index State"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  qid: `wf-${Date.now()}-${Math.floor(Math.random()*1000)}`,\n  parent_qid: $json.qid,\n  thread_id: $json.thread_id,\n  thread_index: $json.thread_index + 1,\n  reply_type: 'n/a',\n  direction: 'inbound',\n  sender_address: $json.warmer_address,\n  sender_name: $json.warmer_name,\n  warmer_address: $json.sender_address,\n  warmer_name: $json.sender_name,\n  subject: $json.subject,\n  body: pickRandomCannedReply(),  // use random static message for now\n  status: 'queued',\n  send_time: randomFutureTime(),  // e.g. 5–60 min ahead\n  created_at: new Date().toISOString(),\n  in_reply_to_message_id: $json['message-id'],  // from Watcher\n  references: $json['message-id']\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1408,
+        -288
+      ],
+      "id": "30a6e799-b089-405d-b585-919b97615906",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"qid\": \"{{ 'wf-' + Date.now() + '-' + Math.floor(Math.random() * 1000) }}\",\n  \"parent_qid\": \"{{ $json.qid }}\",\n  \"thread_id\": \"{{ $json.thread_id }}\",\n  \"thread_index\": \"{{ $json.thread_index + 1 }}\",\n  \"reply_type\": \"{{ $json.reply_type }}\",\n  \"direction\": \"inbound\",\n  \"sender_address\": \"{{ $json.warmer_address }}\",\n  \"sender_name\": \"{{ $json.warmer_name }}\",\n  \"warmer_address\": \"{{ $json.sender_address }}\",\n  \"warmer_name\": \"{{ $json.sender_name }}\",\n  \"subject\": \"{{ $json.subject.startsWith('Re:') ? $json.subject : 'Re: ' + $json.subject }}\",\n  \"body\": \"{{ $json.canned_reply }}\",\n  \"status\": \"queued\",\n  \"send_time\": \"{{ new Date(Date.now() + Math.floor(Math.random() * (60 - 5 + 1) + 5) * 60000).toISOString() }}\",\n  \"created_at\": \"{{ new Date().toISOString() }}\",\n  \"in_reply_to_message_id\": \"{{ $('Watcher').first().json.metadata['message-id'] }}\",\n  \"references\": \"{{ $('Watcher').first().json.metadata['message-id'] }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2656,
+        -336
+      ],
+      "id": "9823affe-70ba-49f7-abec-c2a99c8d6a65",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractEmail(s) {\n  if (!s) return null;\n  const m = s.match(/<([^>]+)>/);\n  return (m ? m[1] : s).trim().toLowerCase();\n}\n\nconst rawFrom = $json.from || null;\nconst fromEmail = extractEmail(rawFrom);\n\nconst senders = $json.all_senders || [];\nconst isMatch = senders.includes(fromEmail);\n\nreturn [\n  {\n    json: {\n      from_email: fromEmail,\n      is_known_sender: isMatch,\n      metadata: $json.metadata || {},\n      subject: $json.subject || \"\",\n      to: $json.to || \"\",\n      message_id: $json.metadata?.[\"message-id\"] || null,\n      x_wf_thread: $json.metadata?.[\"x-wf-thread\"] || null,\n      textPlain: $json.textPlain || null\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        0
+      ],
+      "id": "e418a172-1f72-4819-8a19-feeb7dfe1bed",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0310dd55-adef-45f9-aeb1-e64bb9521206",
+              "name": "all_senders",
+              "value": "={{ $items(\"Get All Senders\").map(i => i.json.sender_address.toLowerCase()) }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -304,
+        -160
+      ],
+      "id": "38ec2f94-f33b-40b0-8889-688d78f2e5ea",
+      "name": "Set Senders Array",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -112,
+        32
+      ],
+      "id": "add09144-2d98-4535-b30f-f8cee0457fc7",
+      "name": "Merge"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "EMail Not From Sending Pool",
+      "typeVersion": 1,
+      "position": [
+        560,
+        128
+      ],
+      "id": "37bccd7b-d169-456d-a140-62821fb0a9a4"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Thread ID Not Exist",
+      "typeVersion": 1,
+      "position": [
+        800,
+        16
+      ],
+      "id": "6bb04aa3-e9d4-477c-8967-559f9c4592d2"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 912173888,
+          "mode": "list",
+          "cachedResultName": "MessageQueue",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8/edit#gid=912173888"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "qid",
+              "lookupValue": "={{ $json.metadata['x-wf-thread'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        928,
+        -160
+      ],
+      "id": "cae07f3a-5d42-456b-a941-4d528207627f",
+      "name": "Get Original Message",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1351992033,
+          "mode": "list",
+          "cachedResultName": "CannedReplyZero",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8/edit#gid=1351992033"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2080,
+        -96
+      ],
+      "id": "5ac1e402-0b8f-49c9-a8c9-11d14bf3939f",
+      "name": "Get ReplyZeros",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2512,
+        64
+      ],
+      "id": "6a5c1121-4de6-425a-a3b1-314c79192af2",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 912173888,
+          "mode": "list",
+          "cachedResultName": "MessageQueue",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8/edit#gid=912173888"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "qid": "={{ 'wf-' + Date.now() + '-' + Math.floor(Math.random() * 1000) }}",
+            "sid": "={{ $json.sid }}",
+            "sender_address": "={{ $json.sender_address }}",
+            "sender_name": "={{ $json.sender_name }}",
+            "wid": "={{ $json.wid }}",
+            "warmer_address": "={{ $json.warmer_address }}",
+            "warmer_name": "={{ $json.warmer_name }}",
+            "reply_type": "={{ $json.reply_type }}",
+            "in_reply_to_message_id": "={{ $('If Thread MetaData').item.json.message_id }}",
+            "references": "={{ $('If Thread MetaData').item.json.message_id }}",
+            "parent_qid": "={{ $('Get Original Message').item.json.qid }}",
+            "direction": "inbound",
+            "thread_id": "={{ $('Get Original Message').item.json.thread_id }}",
+            "status": "queued",
+            "created_at": "={{ $now.toISO() }}",
+            "tz_anchor": "={{ $('Get Original Message').item.json.tz_anchor }}",
+            "schedule_window_et": "={{ $('Get Original Message').item.json.schedule_window_et }}",
+            "engine": "={{ $('Get Original Message').item.json.engine }}",
+            "subject": "={{ $json.subject.startsWith('Re:') ? $json.subject : 'Re: ' + $json.subject }}",
+            "body": "={{ $json.canned_reply }}",
+            "send_time": "={{ $json.send_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "qid",
+              "displayName": "qid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sid",
+              "displayName": "sid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sender_address",
+              "displayName": "sender_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sender_name",
+              "displayName": "sender_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "wid",
+              "displayName": "wid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "warmer_address",
+              "displayName": "warmer_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "warmer_name",
+              "displayName": "warmer_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "send_time",
+              "displayName": "send_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply_type",
+              "displayName": "reply_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "in_reply_to_message_id",
+              "displayName": "in_reply_to_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "references",
+              "displayName": "references",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "parent_qid",
+              "displayName": "parent_qid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "direction",
+              "displayName": "direction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "thread_depth",
+              "displayName": "thread_depth",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "thread_id",
+              "displayName": "thread_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "thread_index",
+              "displayName": "thread_index",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "attempts",
+              "displayName": "attempts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_error",
+              "displayName": "last_error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "schedule_window_et",
+              "displayName": "schedule_window_et",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tz_anchor",
+              "displayName": "tz_anchor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "engine",
+              "displayName": "engine",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "provider_message_id",
+              "displayName": "provider_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sent_at",
+              "displayName": "sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2768,
+        80
+      ],
+      "id": "ed994574-5a6a-4a35-9b73-3844d96cb22f",
+      "name": "Add Message To Queue",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const replies = $items(\"Get ReplyZeros\").map(i => i.json.body).filter(Boolean);\n\nif (replies.length === 0) {\n  throw new Error(\"No canned replies found.\");\n}\n\nconst randomIndex = Math.floor(Math.random() * replies.length);\nconst selectedReply = replies[randomIndex];\n\nreturn [\n  {\n    json: {\n      canned_reply: selectedReply\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2256,
+        -96
+      ],
+      "id": "4bcbefbc-5272-45d0-8a9e-ef1101c8b09b",
+      "name": "Get Random ReplyZero"
+    },
+    {
+      "parameters": {
+        "jsCode": "const scheduleWindow = $json.schedule_window_et || \"09:00–16:00\";\nconst [startStr, endStr] = scheduleWindow.split(\"–\").map(s => s.trim());\nconst [startHour, startMin] = startStr.split(\":\").map(Number);\nconst [endHour, endMin] = endStr.split(\":\").map(Number);\n\nconst createdAt = new Date($json.created_at);  // ISO timestamp\nconst tz = $json.tz_anchor || \"America/New_York\";\n\nconst MIN_MS = 5 * 60 * 1000;         // 5 minutes\nconst SHORT_MAX_MS = 60 * 60 * 1000;  // 60 minutes\nconst LONG_MAX_MS = 36 * 60 * 60 * 1000; // 36 hours\n\nfunction isWithinWindow(date) {\n  const options = { timeZone: tz, hour12: false };\n  const hour = Number(date.toLocaleString(\"en-US\", { hour: '2-digit', ...options }));\n  const minute = Number(date.toLocaleString(\"en-US\", { minute: '2-digit', ...options }));\n  const totalMinutes = hour * 60 + minute;\n  const startTotal = startHour * 60 + startMin;\n  const endTotal = endHour * 60 + endMin;\n  return totalMinutes >= startTotal && totalMinutes <= endTotal;\n}\n\n// Choose short (60%) or long (40%) range\nconst useShort = Math.random() < 0.6;\n\nlet validTime;\nfor (let i = 0; i < 50; i++) {\n  const offset = useShort\n    ? MIN_MS + Math.random() * (SHORT_MAX_MS - MIN_MS)\n    : SHORT_MAX_MS + Math.random() * (LONG_MAX_MS - SHORT_MAX_MS);\n\n  const candidate = new Date(createdAt.getTime() + offset);\n\n  if (isWithinWindow(candidate)) {\n    validTime = candidate;\n    break;\n  }\n}\n\nif (!validTime) {\n  throw new Error(\"Couldn't find a valid send time within constraints.\");\n}\n\nreturn [\n  {\n    json: {\n      send_at: validTime.toISOString()\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2256,
+        -272
+      ],
+      "id": "28ad35fe-c883-495b-a78e-4bd337af6aa3",
+      "name": "Random Send Time Generator (Eastern Time)"
+    }
+  ],
+  "connections": {
+    "Watcher": {
+      "main": [
+        [
+          {
+            "node": "Get All Senders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        []
+      ]
+    },
+    "Get All Senders": {
+      "main": [
+        [
+          {
+            "node": "Set Senders Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If From Sender": {
+      "main": [
+        [
+          {
+            "node": "If Thread MetaData",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "EMail Not From Sending Pool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Thread MetaData": {
+      "main": [
+        [
+          {
+            "node": "Get Original Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Thread ID Not Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Reply Type Single": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Thread Index State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        []
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If From Sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Senders Array": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EMail Not From Sending Pool": {
+      "main": [
+        []
+      ]
+    },
+    "Get Original Message": {
+      "main": [
+        [
+          {
+            "node": "If Reply Type Single",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Thread Index State": {
+      "main": [
+        [
+          {
+            "node": "Get ReplyZeros",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 2
+          },
+          {
+            "node": "Random Send Time Generator (Eastern Time)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Get ReplyZeros": {
+      "main": [
+        [
+          {
+            "node": "Get Random ReplyZero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Add Message To Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Random ReplyZero": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Random Send Time Generator (Eastern Time)": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Watcher": [
+      {
+        "json": {
+          "textHtml": "",
+          "textPlain": "No-shows are a serious issue. They create a gap between what you book and what you actually fill. This leak can drain your resources and hurt your bottom line.\n\nDropStop is designed to seal that gap without adding complexity. Itâs a straightforward solution to help you convert more appointments.\n\nReply \"Drop Zone\" for a quick 90-second overview.\r\n\r\n",
+          "metadata": {
+            "return-path": "<msprvs1=20327gVy6Qjrf=bounces-376273@sparkpostmail1.com>",
+            "delivered-to": "wayne@togetherclean.com",
+            "received": "from mp2.migadu.com ([2001:41d0:303:e224::])\t(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))\tby ms15.migadu.com with LMTPS\tid 4AFnOdQYpWj4yAAAe85BDQ:P1\t(envelope-from <msprvs1=20327gVy6Qjrf=bounces-376273@sparkpostmail1.com>)\tfor <wayne@togetherclean.com>; Wed, 20 Aug 2025 02:37:41 +0200",
+            "x-envelope-to": "wayne@togetherclean.com",
+            "authentication-results": "aspmx1.migadu.com;\tdkim=pass header.d=dimensionsevenai.com header.s=scph0825 header.b=kOucAMop;\tdmarc=pass (policy=quarantine) header.from=dimensionsevenai.com;\tspf=pass (aspmx1.migadu.com: domain of \"msprvs1=20327gVy6Qjrf=bounces-376273@sparkpostmail1.com\" designates 192.174.87.67 as permitted sender) smtp.mailfrom=\"msprvs1=20327gVy6Qjrf=bounces-376273@sparkpostmail1.com\"",
+            "arc-message-signature": "i=1; a=rsa-sha256; c=relaxed/relaxed;\td=togetherclean.com; s=key1; t=1755650260;\th=from:from:reply-to:subject:subject:date:date:message-id:message-id:\t to:to:cc:mime-version:mime-version:content-type:content-type:\t content-transfer-encoding:content-transfer-encoding:dkim-signature;\tbh=9obm3SYuNDqlihgm+OzYmfU+2hAJA3Sz59rNC3J8Fy4=;\tb=VCnAsj7+ebEbc7oGBHSb4A01mGBInCew9r1jtYwfMRmmYBxC3o5aXEiIZDE8TuoUJk9zqr\trWgjWkv9yujv202oPhMn9nUpAi1jx+8/yXSklCsMJqJzBlkRb6CutHYie8NyGCaU1qyYr0\tpU5/haHtvm7xl39JHqFHTMeuJzxFzJCp3V+19S3aFLYYRHxrxl8Jseb18i+ewLW9sBNVHo\t3OFYTLvupin6zTQm0LatXjayQrC8O4lW5iHZCjUDvpjIF5y+oWfV9Nf+7Ve9zSmPAxZ3Bq\teDCBHpLQh15GvZrQHsq/5efsjfyqGJISDbyNTvEqF2UBu06UkQTuJ+wkCuG2yQ==",
+            "arc-seal": "i=1; s=key1; d=togetherclean.com; t=1755650260; a=rsa-sha256;\tcv=none;\tb=JyM2lyeSLDpF+tk/cDX91St2tVYG/two8rZgI/ouX+J4N4qyNNbugQzV61ppOsrGFgmBE3\tGN91XIAIWS7CigAKVGU/LkadEtjDY/0Psl7nMQU1sXKquikgMVa5p517FI3U13TWW5lgMn\tXL4nznPaKj/CksSZXkL7BDEavYANua+XpdlrnSWW2zyA5IJ4v6HxLgFKdQI//V9AT/kRnS\twRB3bYmjvTSXiSBEqgM6J2h6+0RuCjbF3zSdlTC0e85wy+syA+ZXIvI5wdpZI9tLMl0zOG\t+prX4g553EY7oXmMS0ai4yap6/bIDFWhxitPkSwmNBqbxGYHVG15LQTbHohIgA==",
+            "arc-authentication-results": "i=1;\taspmx1.migadu.com;\tdkim=pass header.d=dimensionsevenai.com header.s=scph0825 header.b=kOucAMop;\tdmarc=pass (policy=quarantine) header.from=dimensionsevenai.com;\tspf=pass (aspmx1.migadu.com: domain of \"msprvs1=20327gVy6Qjrf=bounces-376273@sparkpostmail1.com\" designates 192.174.87.67 as permitted sender) smtp.mailfrom=\"msprvs1=20327gVy6Qjrf=bounces-376273@sparkpostmail1.com\"",
+            "x-msfbl": "m1ccLQbhI8P6KKc9/NXliDxOpdu3ZfwFmNl4PQqBvG8=|eyJ0ZW5hbnRfaWQiOiJ\tzcGMiLCJyIjoid2F5bmVAdG9nZXRoZXJjbGVhbi5jb20iLCJtZXNzYWdlX2lkIjo\tiNjg5YWNjMThhNTY4MGMxOTAzM2YiLCJjdXN0b21lcl9pZCI6IjM3NjI3MyIsInN\t1YmFjY291bnRfaWQiOiIwIn0=",
+            "dkim-signature": "v=1; a=rsa-sha256; c=relaxed/relaxed;\td=dimensionsevenai.com; s=scph0825; t=1755650252;\ti=@dimensionsevenai.com;\tbh=9obm3SYuNDqlihgm+OzYmfU+2hAJA3Sz59rNC3J8Fy4=;\th=To:Message-ID:Date:Content-Type:Subject:From:From:To:Cc:Subject;\tb=kOucAMopSr+UJyqOlCpbB8SxmrREwEGTdZGOt0JnUl7vtksU2gUeaJRQWEXsFjwvf\t liD+E+k9xUInTj769v2Bl6NGn+EgKyypW6TecWXOx7cjPCGs0EGCEmbR7Bkgsg+Uba\t R2Sha15Z9NZsnL24MynAG5DXkr7kOsSQB4AaDaXPmnFqFB5Lwy0qGqqkpDykdWct0I\t nuiDlOrW0+xAok2Se4PyFOXoEK4zPltFZ8oLmbsai6D3+ELXMjYMXF4AZ0Ud/yszHh\t P7U4bzT9FDORsaMl1PuQy0m6XbbGngnjaFk25FoxnlT0r38rer8+RDqJYefBfWBltA\t HuReytRRD1XNw==",
+            "message-id": "<F3.30.51737.CC815A86@i-0243df75fc9d9a08e.mta1vrest.sd.prd.sparkpost>",
+            "content-type": "text/plain; charset=UTF-8",
+            "content-transfer-encoding": "quoted-printable",
+            "mime-version": "1.0",
+            "x-wf-thread": "wf-1755649969238-15",
+            "x-migadu-flow": "FLOW_IN",
+            "x-migadu-country": "US",
+            "x-spam-score": "1.36",
+            "x-migadu-queue-id": "143698A0A9",
+            "x-migadu-scanner": "mx12.migadu.com",
+            "x-migadu-spam-score": "1.36"
+          },
+          "attributes": {
+            "uid": 7
+          },
+          "to": "\"Emily\" <wayne@togetherclean.com>",
+          "date": "Wed, 20 Aug 2025 00:37:32 +0000",
+          "subject": "Stop Losing Booked Appointments",
+          "from": "\"Emily\" <emily@dimensionsevenai.com>"
+        }
+      }
+    ]
+  },
+  "versionId": "d0cf993f-28c9-4797-b0cd-48e28e2fa69e",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-15T15:36:46.177Z",
+      "updatedAt": "2025-08-15T15:36:46.177Z",
+      "role": "workflow:owner",
+      "workflowId": "OhPyZvhSoecWaoKZ",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "createdAt": "2025-08-15T15:36:22.990Z",
+      "updatedAt": "2025-08-19T15:41:09.163Z",
+      "id": "EPh7DwWDISJ7kwQC",
+      "name": "WarmUp"
+    },
+    {
+      "createdAt": "2025-08-19T20:27:47.891Z",
+      "updatedAt": "2025-08-19T20:27:47.891Z",
+      "id": "o9TcR4LTe8v7JGxu",
+      "name": "Watcher"
+    },
+    {
+      "createdAt": "2024-12-03T18:52:19.410Z",
+      "updatedAt": "2024-12-03T18:52:19.410Z",
+      "id": "p5nPhLU2bsf1ZFMo",
+      "name": "EMail"
+    },
+    {
+      "createdAt": "2025-08-13T13:01:19.427Z",
+      "updatedAt": "2025-08-13T13:01:19.427Z",
+      "id": "tW9zhd4sBQJS8BjS",
+      "name": "MIGADU"
+    }
+  ]
+}

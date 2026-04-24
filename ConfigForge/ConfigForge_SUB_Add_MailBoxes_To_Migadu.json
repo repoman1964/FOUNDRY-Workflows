@@ -1,0 +1,1086 @@
+{
+  "createdAt": "2025-08-13T19:53:24.613Z",
+  "updatedAt": "2025-08-31T15:14:32.944Z",
+  "id": "vLsWloaFEvmtGg96",
+  "name": "ConfigForge - SUB Add MailBoxes To Migadu",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me1",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -608
+      ],
+      "id": "ab50344a-8f50-43d2-9840-9a5fc0a65996"
+    },
+    {
+      "parameters": {
+        "jsCode": "function generatePasswordFromLocal(localPart) {\n  const leetMap = { a: \"4\", e: \"3\", i: \"1\", o: \"0\", s: \"5\", t: \"7\" };\n  \n  function toLeet(text) {\n    return text\n      .split(\"\")\n      .map(char => leetMap[char.toLowerCase()] || char)\n      .join(\"\");\n  }\n\n  // Capitalize first letter before converting\n  const base = localPart.charAt(0).toUpperCase() + localPart.slice(1);\n  const leetBase = toLeet(base);\n\n  // Random 6-digit number\n  const number = Math.floor(100000 + Math.random() * 900000); // 100000–999999\n\n  return `${leetBase}_${number}`;\n}\n\nconst mailboxes = [\n  { name: \"Emily Carter\", local_part: \"emily\" },\n  { name: \"Hannah Reynolds\", local_part: \"hannah\" },\n  { name: \"Lauren Mitchell\", local_part: \"lauren\" },\n  { name: \"Megan Foster\", local_part: \"megan\" }\n];\n\n// Add password to each mailbox\nconst result = {\n  mailboxes: mailboxes.map(mb => ({\n    ...mb,\n    password: generatePasswordFromLocal(mb.local_part)\n  }))\n};\n\nreturn [{ json: result }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1248,
+        -672
+      ],
+      "id": "66d909c2-0923-4c31-bb7b-99100ae09237",
+      "name": "Generate Passwords"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.migadu.com/v1/domains/{{ $('Start').item.json.domain_name }}/mailboxes",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $json.name }}\",\n  \"local_part\": \"{{ $json.local_part }}\",\n  \"password\": \"{{ $json.password }}\" \n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -704,
+        -672
+      ],
+      "id": "4028d3a7-4051-47f4-8e79-88afd6fdc38b",
+      "name": "Migadu Create MailBox",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "igaJ1m9nbgvleNol",
+          "name": "Migadu MailBox Platform"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"mailboxes\": [\n    {\"name\": \"Emily Carter\", \"local_part\": \"emily\", \"password\": \"{{ $json.mailboxes[0].password }}\"}, \n    {\"name\": \"Hannah Reynolds\", \"local_part\": \"hannah\", \"password\": \"{{ $json.mailboxes[1].password }}\"}, \n    {\"name\": \"Lauren Mitchell\", \"local_part\": \"lauren\", \"password\": \"{{ $json.mailboxes[2].password }}\"}, \n    {\"name\": \"Megan Foster\", \"local_part\": \"megan\", \"password\": \"{{ $json.mailboxes[3].password }}\"} \n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1072,
+        -672
+      ],
+      "id": "dd819100-5a02-45f0-bc2f-2adae2fca9a5",
+      "name": "Set MailBox Data"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "mailboxes",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -896,
+        -672
+      ],
+      "id": "27f70172-2518-4725-a532-24c6ad175587",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1504,
+        -688
+      ],
+      "id": "6a5160da-31f7-4200-b4ce-39b01a7dd035",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"domain_name\": \"a string\"  \n}"
+      },
+      "id": "e06fe746-c0d5-43c3-82a2-c084928dea17",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -1936,
+        -688
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1sXCQaL3x_xzdvF0bR_l3ChX97lT1gnc3EJ8mcWzDYc8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 297330890,
+          "mode": "list",
+          "cachedResultName": "Pool A",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sXCQaL3x_xzdvF0bR_l3ChX97lT1gnc3EJ8mcWzDYc8/edit#gid=297330890"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created",
+              "displayName": "created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "domain",
+              "displayName": "domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "password",
+              "displayName": "password",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "local_part",
+              "displayName": "local_part",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_name",
+              "displayName": "last_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "imap_server",
+              "displayName": "imap_server",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "imap_port",
+              "displayName": "imap_port",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "smtp_server",
+              "displayName": "smtp_server",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "smtp_port",
+              "displayName": "smtp_port",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_health_check",
+              "displayName": "last_health_check",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -128,
+        -896
+      ],
+      "id": "80b7a86e-80e6-4a56-b174-835cd213e4c8",
+      "name": "Persist Migadu TXT Validation Record",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Replace Me1').item.json.local_part }}",
+                    "rightValue": "emily",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "73640ec3-49d4-4fbd-b8fd-2d66740e7603"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Emily"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4ca8341b-f939-4ee8-a20e-3d5e5d44251d",
+                    "leftValue": "={{ $('Replace Me1').item.json.local_part }}",
+                    "rightValue": "hannah",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Hannah"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "dcb3ed71-7f03-42ee-b9b5-5f0350f311d2",
+                    "leftValue": "={{ $('Replace Me1').item.json.local_part }}",
+                    "rightValue": "lauren",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Lauren"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f0d367c1-975d-4062-a7ed-c009ad3060aa",
+                    "leftValue": "={{ $('Replace Me1').item.json.local_part }}",
+                    "rightValue": "megan",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Megan"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1168,
+        -1136
+      ],
+      "id": "37f5bd10-8f52-4f7e-a942-c382e470bc3f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "92354aa7-5c43-4cb1-831c-c21b3ad0c5a7",
+              "name": "mb-id",
+              "value": "={{ $('Get Domain ID').item.json.d_id }}-e",
+              "type": "string"
+            },
+            {
+              "id": "a14e0e7a-1f0f-43f1-8e00-e8da8680ec86",
+              "name": "password",
+              "value": "={{ $('Generate Passwords').item.json.mailboxes[0].password }}",
+              "type": "string"
+            },
+            {
+              "id": "13c4c583-7003-4e96-831c-4ae67bfc512d",
+              "name": "first_name",
+              "value": "={{ $json.name.split(' ')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "d9692298-1603-4ec6-9778-d9ad5fdde2a7",
+              "name": "last_name",
+              "value": "={{ $json.name.split(' ')[1] }}",
+              "type": "string"
+            },
+            {
+              "id": "ce28473f-f734-42b1-acf1-80d884bccab0",
+              "name": "full_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -848,
+        -1392
+      ],
+      "id": "2c3948ca-37c2-438c-87b8-42950f1bc288",
+      "name": "Set Emily Data"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "92354aa7-5c43-4cb1-831c-c21b3ad0c5a7",
+              "name": "mb-id",
+              "value": "={{ $('Get Domain ID').item.json.d_id }}-h",
+              "type": "string"
+            },
+            {
+              "id": "c9c86a57-ec90-4ab6-bbd1-2dc8521451cc",
+              "name": "email_address",
+              "value": "={{ $json.local_part }}@{{ $('Get Domain ID').item.json.domain }}",
+              "type": "string"
+            },
+            {
+              "id": "a14e0e7a-1f0f-43f1-8e00-e8da8680ec86",
+              "name": "password",
+              "value": "={{ $('Generate Passwords').item.json.mailboxes[1].password }}",
+              "type": "string"
+            },
+            {
+              "id": "52561455-12d2-4ecf-8906-7ee42b0cfecc",
+              "name": "first_name",
+              "value": "={{ $json.name.split(' ')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "13c4c583-7003-4e96-831c-4ae67bfc512d",
+              "name": "last_name",
+              "value": "={{ $json.name.split(' ')[1] }}",
+              "type": "string"
+            },
+            {
+              "id": "5ced7d58-2e31-4fb0-bc99-1491d040cc52",
+              "name": "full_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -848,
+        -1216
+      ],
+      "id": "c6820870-94fa-4e5c-ba8e-b061bdfa68a1",
+      "name": "Set Hannah Data"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1311570217,
+          "mode": "list",
+          "cachedResultName": "cf_domains",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4/edit#gid=1311570217"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "domain",
+              "lookupValue": "={{ $json.domain_name }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1728,
+        -688
+      ],
+      "id": "de07b771-55c8-462b-97cf-fa2abb527a54",
+      "name": "Get Domain ID",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "92354aa7-5c43-4cb1-831c-c21b3ad0c5a7",
+              "name": "mb-id",
+              "value": "={{ $('Get Domain ID').item.json.d_id }}-l",
+              "type": "string"
+            },
+            {
+              "id": "c9c86a57-ec90-4ab6-bbd1-2dc8521451cc",
+              "name": "email_address",
+              "value": "={{ $json.local_part }}@{{ $('Get Domain ID').item.json.domain }}",
+              "type": "string"
+            },
+            {
+              "id": "a14e0e7a-1f0f-43f1-8e00-e8da8680ec86",
+              "name": "password",
+              "value": "={{ $('Generate Passwords').item.json.mailboxes[2].password }}",
+              "type": "string"
+            },
+            {
+              "id": "4e73bf5c-d7a4-46fb-961c-76a4a2d5c6e0",
+              "name": "first_name",
+              "value": "={{ $json.name.split(' ')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "13c4c583-7003-4e96-831c-4ae67bfc512d",
+              "name": "last_name",
+              "value": "={{ $json.name.split(' ')[1] }}",
+              "type": "string"
+            },
+            {
+              "id": "5ced7d58-2e31-4fb0-bc99-1491d040cc52",
+              "name": "full_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -848,
+        -1040
+      ],
+      "id": "68f95d89-1bc9-4b18-b350-8ed3c2ab4823",
+      "name": "Set Lauren Data"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "92354aa7-5c43-4cb1-831c-c21b3ad0c5a7",
+              "name": "mb-id",
+              "value": "={{ $('Get Domain ID').item.json.d_id }}-m",
+              "type": "string"
+            },
+            {
+              "id": "c9c86a57-ec90-4ab6-bbd1-2dc8521451cc",
+              "name": "email_address",
+              "value": "={{ $json.local_part }}@{{ $('Get Domain ID').item.json.domain }}",
+              "type": "string"
+            },
+            {
+              "id": "a14e0e7a-1f0f-43f1-8e00-e8da8680ec86",
+              "name": "password",
+              "value": "={{ $('Generate Passwords').item.json.mailboxes[3].password }}",
+              "type": "string"
+            },
+            {
+              "id": "95c647a4-baf6-44c8-a3be-0c0b79ff4a54",
+              "name": "first_name",
+              "value": "={{ $json.name.split(' ')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "13c4c583-7003-4e96-831c-4ae67bfc512d",
+              "name": "last_name",
+              "value": "={{ $json.name.split(' ')[1] }}",
+              "type": "string"
+            },
+            {
+              "id": "5ced7d58-2e31-4fb0-bc99-1491d040cc52",
+              "name": "full_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -848,
+        -848
+      ],
+      "id": "22df93ba-39d2-482f-9255-5139ec946558",
+      "name": "Set Megan Data"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1700968550,
+          "mode": "list",
+          "cachedResultName": "cf_mailboxes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4/edit#gid=1700968550"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email address": "={{ $('Switch').item.json.local_part }}@{{ $('Get Domain ID').item.json.domain }}",
+            "mb_id": "={{ $json['mb-id'] }}",
+            "password": "={{ $json.password }}",
+            "first name": "={{ $json.first_name }}",
+            "last name": "={{ $json.last_name }}",
+            "full_name": "={{ $json.full_name }}",
+            "d_id": "={{ $('Get Domain ID').item.json.d_id }}",
+            "active": "false",
+            "paused": "false",
+            "warmup": "true",
+            "sends_today": "0",
+            "mailbox_send_cap": "2",
+            "domain_send_cap": "2",
+            "week_index": "1"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "mb_id",
+              "displayName": "mb_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "d_id",
+              "displayName": "d_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email address",
+              "displayName": "email address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "password",
+              "displayName": "password",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "first name",
+              "displayName": "first name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last name",
+              "displayName": "last name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "active",
+              "displayName": "active",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "paused",
+              "displayName": "paused",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "warmup",
+              "displayName": "warmup",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sends_today",
+              "displayName": "sends_today",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mailbox_send_cap",
+              "displayName": "mailbox_send_cap",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "domain_send_cap",
+              "displayName": "domain_send_cap",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "week_index",
+              "displayName": "week_index",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "health_status",
+              "displayName": "health_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -432,
+        -1120
+      ],
+      "id": "483b043b-18a0-4cf3-b1c8-bfd9f84661ee",
+      "name": "Persist Mailboxes/Passwords",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Set MailBox Data": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Migadu Create MailBox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Passwords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Migadu Create MailBox": {
+      "main": [
+        [
+          {
+            "node": "Replace Me1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Passwords": {
+      "main": [
+        [
+          {
+            "node": "Set MailBox Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Get Domain ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persist Migadu TXT Validation Record": {
+      "main": [
+        []
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Set Emily Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Hannah Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Lauren Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Megan Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Emily Data": {
+      "main": [
+        [
+          {
+            "node": "Persist Mailboxes/Passwords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Domain ID": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Hannah Data": {
+      "main": [
+        [
+          {
+            "node": "Persist Mailboxes/Passwords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Lauren Data": {
+      "main": [
+        [
+          {
+            "node": "Persist Mailboxes/Passwords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Megan Data": {
+      "main": [
+        [
+          {
+            "node": "Persist Mailboxes/Passwords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Start": [
+      {
+        "json": {
+          "domain_name": "thedimensionsevensystems.com"
+        }
+      }
+    ]
+  },
+  "versionId": "a8b90a89-caef-46b3-abd6-d1987baa5e3a",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-13T19:53:24.613Z",
+      "updatedAt": "2025-08-13T19:53:24.613Z",
+      "role": "workflow:owner",
+      "workflowId": "vLsWloaFEvmtGg96",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "createdAt": "2024-12-03T18:52:19.410Z",
+      "updatedAt": "2024-12-03T18:52:19.410Z",
+      "id": "p5nPhLU2bsf1ZFMo",
+      "name": "EMail"
+    },
+    {
+      "createdAt": "2025-08-13T13:01:19.427Z",
+      "updatedAt": "2025-08-13T13:01:19.427Z",
+      "id": "tW9zhd4sBQJS8BjS",
+      "name": "MIGADU"
+    }
+  ]
+}

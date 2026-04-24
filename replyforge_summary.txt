@@ -1,0 +1,26 @@
+💬 ReplyForge — Engagement & Response Automation
+
+Purpose:
+ReplyForge is the conversation manager inside The Foundry. It centralizes all replies from SendForge campaigns into a single Unibox, classifies them automatically, and triggers downstream workflows.
+
+Core Functions:
+
+Unibox: Unified inbox across all domains and mailboxes
+
+Classification: Auto-sort replies (positive, negative, referral, unsubscribe, OOO, bounce)
+
+Automation: Trigger CRM syncs, Slack/Telegram alerts, autoresponders
+
+AI Assist: Draft replies, generate polite deferrals, insert scheduling links
+
+Analytics: Feed reply data back into TrackForge for deliverability + health scoring
+
+Why It Matters:
+
+Operators get one dashboard for all conversations
+
+No lost leads — hot replies are surfaced instantly
+
+Reply signals strengthen domain reputation (with WarmForge + TrackForge feedback loop)
+
+Enables scaling cold outreach without drowning in inbox chaos

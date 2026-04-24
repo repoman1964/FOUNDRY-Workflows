@@ -1,0 +1,748 @@
+{
+  "createdAt": "2025-08-19T15:07:28.396Z",
+  "updatedAt": "2025-08-31T15:17:27.385Z",
+  "id": "r0idVBUbFvgtQJ1H",
+  "name": "WarmForge - Message Dispatcher",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        64
+      ],
+      "id": "47172a2d-bbfc-42bd-b4c5-cb9c608dcf6c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -720,
+        -112
+      ],
+      "id": "a77e7538-6e09-409a-ba2c-d4e57fd1fb6f",
+      "name": "Every 5 Minutes",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "454c2861-c37f-4001-bbd7-20becf8364cb",
+              "leftValue": "={{ $json.send_time }}",
+              "rightValue": "={{ $now }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "beforeOrEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -256,
+        0
+      ],
+      "id": "0181435f-0d0c-4cae-a6c3-9a77ad0497b5",
+      "name": "Filter"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        192
+      ],
+      "id": "4d8c5bed-72ed-4b47-ba79-fa16a79ac790"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        144,
+        0
+      ],
+      "id": "0af6e477-8557-4378-857d-42ff3bef0b07",
+      "name": "Loop Messages"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 912173888,
+          "mode": "list",
+          "cachedResultName": "MessageQueue",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8/edit#gid=912173888"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "qid": "={{ $('Loop Messages').item.json.qid }}",
+            "status": "sent",
+            "sent_at": "={{ $now.toISO() }}",
+            "updated_at": "={{ $now.toISO() }}",
+            "provider_message_id": "={{ $json.results.id }}"
+          },
+          "matchingColumns": [
+            "qid"
+          ],
+          "schema": [
+            {
+              "id": "qid",
+              "displayName": "qid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sid",
+              "displayName": "sid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sender_address",
+              "displayName": "sender_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sender_name",
+              "displayName": "sender_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "wid",
+              "displayName": "wid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "warmer_address",
+              "displayName": "warmer_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "warmer_name",
+              "displayName": "warmer_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "send_time",
+              "displayName": "send_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "reply_type",
+              "displayName": "reply_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "in_reply_to_provider_id",
+              "displayName": "in_reply_to_provider_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "parent_qid",
+              "displayName": "parent_qid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "direction",
+              "displayName": "direction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "thread_depth",
+              "displayName": "thread_depth",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "thread_id",
+              "displayName": "thread_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "thread_index",
+              "displayName": "thread_index",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "attempts",
+              "displayName": "attempts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "last_error",
+              "displayName": "last_error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "schedule_window_et",
+              "displayName": "schedule_window_et",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "tz_anchor",
+              "displayName": "tz_anchor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "engine",
+              "displayName": "engine",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "provider_message_id",
+              "displayName": "provider_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sent_at",
+              "displayName": "sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1136,
+        -176
+      ],
+      "id": "a6b05435-0d21-45a4-bb5d-ddce7a8d7cb8",
+      "name": "Mark as Sent",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7adea204-c048-428c-b4e9-193cec7c091e",
+              "leftValue": "={{ $json.results.total_accepted_recipients }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -64
+      ],
+      "id": "05af1f09-e2ce-48f2-a6c4-b3fe8ee5af3f",
+      "name": "Send Successful?",
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        64
+      ],
+      "id": "44b7c43e-cffd-48b5-9729-c5ed7ad68717",
+      "name": "TODO – Fail Handling"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.sparkpost.com/api/v1/transmissions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"options\": {\n    \"use_sparkpost_dkim\": false,\n    \"transactional\": true,\n    \"return_path\": \"bounce@bounce.{{ $json.sender_address.split('@')[1] }}\"\n  },\n  \"recipients\": [\n    { \"address\": { \"email\": \"{{ $json.warmer_address }}\", \"name\": \"{{ $json.sender_name }}\" } }\n  ],\n  \"content\": {\n    \"headers\": { \"X-WF-Thread\": \"{{$json.qid}}\" },\n    \"from\": {\n      \"email\": \"{{ $json.sender_address }}\",\n      \"name\": \"{{ $json.sender_name }}\"\n    },\n    \"subject\": \"{{ $json.subject }}\",\n    \"text\": \"{{ $json.body }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        576,
+        96
+      ],
+      "id": "b866c219-d56e-4799-bb94-23ffed5036db",
+      "name": "SparkPost - Send Message",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "sFJlOVOp0ZOb2dzc",
+          "name": "SparkPost Header Auth"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        0
+      ],
+      "id": "980e444f-4735-4892-9ea7-4a191334c32e",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const rawBody = item.json.body || '';\n  item.json.body = rawBody\n    .replace(/\\\\/g, '\\\\\\\\')         // escape backslashes first\n    .replace(/\"/g, '\\\\\"')           // escape double quotes\n    .replace(/\\n/g, '\\\\n');         // escape newlines\n  return item;\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        80
+      ],
+      "id": "07624eb2-a6b2-4873-a5ef-fd2fb5b314c8",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 912173888,
+          "mode": "list",
+          "cachedResultName": "MessageQueue",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8/edit#gid=912173888"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "queued"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -464,
+        0
+      ],
+      "id": "9609e7a0-9e97-4cef-8b66-be9eef9ab084",
+      "name": "Get Messages From Queue",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every 5 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Get Messages From Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get Messages From Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Messages": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark as Sent": {
+      "main": [
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Successful?": {
+      "main": [
+        [
+          {
+            "node": "Mark as Sent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "TODO – Fail Handling",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SparkPost - Send Message": {
+      "main": [
+        [
+          {
+            "node": "Send Successful?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "SparkPost - Send Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Messages From Queue": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "e2970a42-e33b-428f-8b2e-ff7521e2effb",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-19T15:07:28.396Z",
+      "updatedAt": "2025-08-19T15:07:28.396Z",
+      "role": "workflow:owner",
+      "workflowId": "r0idVBUbFvgtQJ1H",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

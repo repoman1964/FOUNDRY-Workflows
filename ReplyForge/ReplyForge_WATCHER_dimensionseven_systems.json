@@ -1,0 +1,261 @@
+{
+  "createdAt": "2025-08-28T17:03:04.843Z",
+  "updatedAt": "2025-09-04T11:01:06.848Z",
+  "id": "72ia3DX3Hi4QkoHo",
+  "name": "ReplyForge - WATCHER dimensionseven.systems",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "7859955122",
+        "text": "=UniBox Reply\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        336,
+        96
+      ],
+      "id": "9f304727-0945-42dc-b6c0-9e90f2791f81",
+      "name": "Send a text message",
+      "webhookId": "4ecd7d54-a545-40f8-a9c4-1e5b9b42e19f",
+      "credentials": {
+        "telegramApi": {
+          "id": "J7hAh8SjxHCNGGMN",
+          "name": "ReplyForgeBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "7ecb0dca-6f9e-4518-8ed3-089ff244f897",
+      "name": "hannah@dimensionseven.systems",
+      "type": "n8n-nodes-base.emailReadImap",
+      "position": [
+        -432,
+        96
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "imap": {
+          "id": "dLHWBt5y52t9sbzv",
+          "name": "hannah@dimensionseven.systems"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "c7a22b96-532b-4e38-99f0-ec25f605b3b4",
+      "name": "lauren@dimensionseven.systems",
+      "type": "n8n-nodes-base.emailReadImap",
+      "position": [
+        -432,
+        480
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "imap": {
+          "id": "fjnSdN9CIlpu3nWg",
+          "name": "lauren@dimensionseven.systems"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "b8c6db97-43ab-4b01-bc9c-ceec63db62f9",
+      "name": "megan@dimensionseven.systems",
+      "type": "n8n-nodes-base.emailReadImap",
+      "position": [
+        -432,
+        288
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "imap": {
+          "id": "oQ84UxvlUYzyAMkf",
+          "name": "megan@dimensionseven.systems"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "67f0bc24-2738-4b44-9b5c-c0b4d7b0ea25",
+      "name": "emily@dimensionseven.systems",
+      "type": "n8n-nodes-base.emailReadImap",
+      "position": [
+        -432,
+        -352
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "imap": {
+          "id": "IYA2mYUejoYiYmTB",
+          "name": "emily@dimensionseven.systems"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "\n  {\n    \"textHtml\": \"<div dir=\\\"ltr\\\">oh say can you seeÂ </div>\\r\\n\",\n    \"textPlain\": \"oh say can you see\\r\\n\",\n    \"metadata\": {\n      \"return-path\": \"<jmadarieta3@gmail.com>\",\n      \"delivered-to\": \"emily@dimensionseven.systems\",\n      \"received\": \"from mp2.migadu.com ([2001:41d0:403:58f0::])\\t(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))\\tby ms15.migadu.com with LMTPS\\tid EOfNF/ewsWiDGwAAe85BDQ:P1\\t(envelope-from <jmadarieta3@gmail.com>)\\tfor <emily@dimensionseven.systems>; Fri, 29 Aug 2025 15:53:59 +0200\",\n      \"x-envelope-to\": \"emily@dimensionseven.systems\",\n      \"authentication-results\": \"aspmx1.migadu.com;\\tdkim=pass header.d=gmail.com header.s=20230601 header.b=YOxvudLm;\\tdmarc=pass (policy=none) header.from=gmail.com;\\tspf=pass (aspmx1.migadu.com: domain of jmadarieta3@gmail.com designates 2a00:1450:4864:20::434 as permitted sender) smtp.mailfrom=jmadarieta3@gmail.com\",\n      \"arc-message-signature\": \"i=1; a=rsa-sha256; c=relaxed/relaxed;\\td=dimensionseven.systems; s=key1; t=1756475639;\\th=from:from:reply-to:subject:subject:date:date:message-id:message-id:\\t to:to:cc:mime-version:mime-version:content-type:content-type:\\t dkim-signature; bh=H5Pxz/Q6LXBdfuxHhfa1IJGvEkeS2plPkQkufwH9fKg=;\\tb=QtWeB/BXBIlPFrt+99k5CtSOepJCnFdVbU1dVP04+FG8sIZTGqNcXbkMEcPEPr4gK9Qtgs\\tDxn6f3upTHDaEIJpnY1fbHpPMqhoF3tcNYqiwc6ViVrrQmeFsRXizO3mV9aCkrwD/AhmRV\\t5SzQzwf15dCG+zKPAkcEmuWjIrGqD7eOXY4eAQ99QWaMC2Aio4KCAF3as+cPB0NAg6m9Qz\\tmocDgJdz+YpMx+3+GHGPa7N/mDBravcOymh6njr+4uETsd0Pz7YqTno+e1NS2dQmP/ORqN\\tNIYII5pOpTUoqv15e64bHEIQERMEM0yP00yPrRQpdE+EqhlXLfs1l34Ld9xtyg==\",\n      \"arc-authentication-results\": \"i=1;\\taspmx1.migadu.com;\\tdkim=pass header.d=gmail.com header.s=20230601 header.b=YOxvudLm;\\tdmarc=pass (policy=none) header.from=gmail.com;\\tspf=pass (aspmx1.migadu.com: domain of jmadarieta3@gmail.com designates 2a00:1450:4864:20::434 as permitted sender) smtp.mailfrom=jmadarieta3@gmail.com\",\n      \"arc-seal\": \"i=1; s=key1; d=dimensionseven.systems; t=1756475639; a=rsa-sha256;\\tcv=none;\\tb=Cm9p+Um6fY03lm1komBsyFNYBmAGi9t13z3jQ0JImhZDdTU50EGGFwMlL48vxzEozfxvNX\\t6U9PFiykWmZdCF/I4sF+fXaSlEJAz0gI57gyRdglaU8pbZc0Bl+Wqf+iW1gzsxG/Y2ZK14\\tfV4GaVIR32ULdrB35IjgTKCvvXg3AQxaTpuU7860Oa6v/xhs7cJIxKYCwYvA1LryT8nHWS\\tVMCKY+c14gQCdecbIJwuXwgfeuSg8T6VE7AzWMboJvZ0i0s9xxjg1hfXn37wHP6A+DesEg\\tcxIx/PXwVTwlYQq29xJcFiCGnWomJxf9RC771T/JRYqxMHtoV8yVh5N6eOr8og==\",\n      \"dkim-signature\": \"v=1; a=rsa-sha256; c=relaxed/relaxed;        d=gmail.com; s=20230601; t=1756475620; x=1757080420; darn=dimensionseven.systems;        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject         :date:message-id:reply-to;        bh=H5Pxz/Q6LXBdfuxHhfa1IJGvEkeS2plPkQkufwH9fKg=;        b=YOxvudLmCJHo6Ww+OUdwhn7PGUH28FcqSHW73gHBZZ8jKD9YMSywP0G2+aD/0klGRq         QCECv3KSadaImIa09ZXZVrzqC+w/a6oRbA2mDmKqwWuq/hNPDNM3kUlOXMB/2bZHX7W1         e3j7WAtQKztLgQxQuDmBJ31oO7EoHEQ8HMwXfr2DQQ/BIfUnqqzk+8R3xt1Nylg87cP9         cYbCVSBF2c+bvEuFOc+udmogHhCW1IseYks6jxVWJIo78d3q1w/bXb2o6aFWvgNfbzOw         6Fp3tMPRpEyZDZcPsvNc3CuZ11GpkUhCd9o+3oEfvZTcIr7ul92Drhdzq12I4giADWRy         8W1g==\",\n      \"x-google-dkim-signature\": \"v=1; a=rsa-sha256; c=relaxed/relaxed;        d=1e100.net; s=20230601; t=1756475620; x=1757080420;        h=to:subject:message-id:date:from:mime-version:x-gm-message-state         :from:to:cc:subject:date:message-id:reply-to;        bh=H5Pxz/Q6LXBdfuxHhfa1IJGvEkeS2plPkQkufwH9fKg=;        b=vo9SS0VJMq4uMcYpPpk2M6mFW3hub4l/GyK/H1Hi471WoULRrXWbVJLTGC6P/p7vn5         +T5eRn2q+5y6ssGZEI0ucnC/lDmZMkcV0mEaCZ0gHT3R7n1Sui1BjW+PmSOemp3mzt4+         uHNYM/WZZkBoxKgJjiI7c/mCQ7aI6EFEd2b9GpYkvvvlRaw84ROy2O8IwWMNUuFq5UtP         LHc2YOO9k0rtZC1q9HPqF0vXvUa5cUsa2fA4WIXWywURHUYG2Fp4L5ZgVwWTFYI67MWN         ODJsprLqzHSAMcNCLl1byPbx464m6fOWsx191k4uxed4XorLcjOyhTMl8mZvVADJHWbX         p/yg==\",\n      \"x-gm-message-state\": \"AOJu0YzSsFuybySODiQCQHVh54YBqpk3klXYnzCijJs1sIih20BOFAE2\\tyrlAbx2IGDXCGJQ+bZ4Eaayu3CgS5abE1Okn9JCLYRV3+xsAy0XxrpZG1oCvyz+i+Bag8biIsdj\\t+TtJRscNixENB/+dcYXzUx3tyEKzMoJpjEKsj\",\n      \"x-gm-gg\": \"ASbGncvzLpgT2l5M9dL9OR/Kb9vcWJb2addcmklZnsq1BpEYaQTvG5/B58GO4m58ZlF\\toDmG16offevHPL8T3FrSTcnFvPznVpf+kr/XISIYXdfNA+ToITe8ClDL6lmS3SFjlCq4F1iPvun\\tjTiofNkUpDmKVZwDvNHBUmSrNpJ5brJ5v7F3X7TEIVp3c4rtRifKWM+cid/uEFli4p35w0Mj9OQ\\tsiOaB9qoowy2a1Gn8Bze0VtK4/TATozvwzLCRXxrvhevpL+hpsmh73OFUk0LRBBCBhrqDRronIu\\tpNI0jg==\",\n      \"x-google-smtp-source\": \"AGHT+IG+nqX52xpk5CW2gcyaoS18e0NUtwKJKaWVQ9ODgZFiP7XrWa/U/vIPAw48FCQigZmahXN/6G0iHE91FToO+KI=\",\n      \"x-received\": \"by 2002:a05:6000:25c1:b0:3ce:f0a5:d59b with SMTP id ffacd0b85a97d-3cef0a5dbaemr2860427f8f.12.1756475620163; Fri, 29 Aug 2025 06:53:40 -0700 (PDT)\",\n      \"mime-version\": \"1.0\",\n      \"x-gm-features\": \"Ac12FXy-owCQ27ju7MjJ4vkjcMaUs6g4CpNUqn-znwUTRXpGuivKdcYx9ank8Zk\",\n      \"message-id\": \"<CAFTVrRq1rB-z4D=Ky7EggGrZ74=NGnXx4Y10wYRp7FCQfPCKWA@mail.gmail.com>\",\n      \"content-type\": \"multipart/alternative; boundary=\\\"000000000000658724063d815912\\\"\",\n      \"x-migadu-country\": \"US\",\n      \"x-migadu-flow\": \"FLOW_IN\",\n      \"x-migadu-scanner\": \"mx11.migadu.com\",\n      \"x-migadu-spam-score\": \"-4.11\",\n      \"x-spam-score\": \"-4.11\",\n      \"x-migadu-queue-id\": \"02698AF01B\"\n    },\n    \"attributes\": {\n      \"uid\": 1\n    },\n    \"from\": \"Jose Madarieta <jmadarieta3@gmail.com>\",\n    \"date\": \"Fri, 29 Aug 2025 09:53:27 -0400\",\n    \"subject\": \"test warmers\",\n    \"to\": \"Mautic Test <emily@dimensionseven.systems>\"\n  }\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        96
+      ],
+      "id": "1af0b341-c972-4db5-a484-c0e96e7e1e29",
+      "name": "Edit Fields"
+    }
+  ],
+  "connections": {
+    "hannah@dimensionseven.systems": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "lauren@dimensionseven.systems": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "megan@dimensionseven.systems": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "emily@dimensionseven.systems": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "errorWorkflow": "VzqKEW0ShTXA5vPj",
+    "timezone": "America/New_York",
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:hannah@dimensionseven.systems": {},
+    "node:lauren@dimensionseven.systems": {},
+    "node:megan@dimensionseven.systems": {},
+    "node:emily@dimensionseven.systems": {}
+  },
+  "meta": null,
+  "pinData": {},
+  "versionId": "d138a83a-33a2-4aa1-9bb2-66ca8e57fa71",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-08-28T17:03:04.843Z",
+      "updatedAt": "2025-08-28T17:03:04.843Z",
+      "role": "workflow:owner",
+      "workflowId": "72ia3DX3Hi4QkoHo",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

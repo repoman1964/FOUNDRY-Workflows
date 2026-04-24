@@ -1,0 +1,679 @@
+{
+  "createdAt": "2025-08-15T20:24:24.686Z",
+  "updatedAt": "2025-08-31T15:15:29.642Z",
+  "id": "2rx4oWGLJenlXLMe",
+  "name": "ConfigForge - SUB Add DNS Stuff To NameCheap",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://api.namecheap.com/xml.response",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={\n  \"apiuser\": \"{{ $('NameCheap PRODUCTION Data').item.json.ApiUser }}\",\n  \"apikey\": \"{{ $('NameCheap PRODUCTION Data').item.json.ApiKey }}\",\n  \"username\": \"{{ $('NameCheap PRODUCTION Data').item.json.ApiUser }}\",\n  \"Command\": \"namecheap.domains.dns.setHosts\",\n  \"ClientIp\": \"{{ $('NameCheap PRODUCTION Data').item.json.ClientIp }}\",\n\n   \"SLD\": \"{{ $json.domain_name.split('.')[0] }}\",\n   \"TLD\": \"{{ $json.domain_name.split('.')[1] }}\",\n\n  \n  \"HostName1\": \"{{ $json.sparkpost_dkim_hostname }}._domainkey\",\n  \"RecordType1\": \"TXT\",\n  \"Address1\": \"v=DKIM1; k=rsa; h=sha256; p={{ $json.sparkpost_dkim_value }}\",\n  \"TTL1\": \"60\",\n\n  \"HostName2\": \"bounce\",\n  \"RecordType2\": \"CNAME\",\n  \"Address2\": \"sparkpostmail.com.\",\n  \"TTL2\": \"60\",\n\n  \"HostName3\": \"_dmarc\",\n  \"RecordType3\": \"TXT\",\n  \"Address3\": \"v=DMARC1; p=quarantine; rua=mailto:admin@dimensionseven.systems\",\n  \"TTL3\": \"60\",\n\n  \"HostName4\": \"@\",\n  \"RecordType4\": \"TXT\",\n  \"Address4\": \"{{ $json.migadu_verification_record }}\",\n  \"TTL4\": \"60\",\n\n  \"HostName5\": \"key1._domainkey\",\n  \"RecordType5\": \"CNAME\",\n  \"Address5\": \"key1.{{ $json.domain_name }}._domainkey.migadu.com.\",\n  \"TTL5\": \"60\",\n\n  \"HostName6\": \"key2._domainkey\",\n  \"RecordType6\": \"CNAME\",\n  \"Address6\": \"key2.{{ $json.domain_name }}._domainkey.migadu.com.\",\n  \"TTL6\": \"60\",\n\n  \"HostName7\": \"key3._domainkey\",\n  \"RecordType7\": \"CNAME\",\n  \"Address7\": \"key3.{{ $json.domain_name }}._domainkey.migadu.com.\",\n  \"TTL7\": \"60\",\n\n  \"HostName8\": \"@\",\n  \"RecordType8\": \"MX\",\n  \"Address8\": \"aspmx1.migadu.com.\",\n  \"MXPref8\": \"10\",\n  \"TTL8\": \"60\",\n\n  \"HostName9\": \"@\",\n  \"RecordType9\": \"MX\",\n  \"Address9\": \"aspmx2.migadu.com.\",\n  \"MXPref9\": \"20\",\n  \"TTL9\": \"60\",\n\n  \"HostName10\": \"@\",\n  \"RecordType10\": \"TXT\",\n  \"Address10\": \"v=spf1 include:_spf.sparkpostmail.com ~all\",\n  \"TTL10\": \"60\",\n\n  \"HostName11\": \"{{ $json.sparkpost_bounce_hostname }}._domainkey.bounce\",\n  \"RecordType11\": \"TXT\",\n  \"Address11\": \"v=DKIM1; k=rsa; h=sha256; p={{ $json.sparkpost_bounce_dkim_value }}\",\n  \"TTL11\": \"60\",\n  \n  \"EmailType\": \"MX\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        -272
+      ],
+      "id": "caf883ff-7b7d-426a-b502-276f69a07210",
+      "name": "Add DNS Records"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1sTRR5kBFXbaBRxPTjdUHtla1HDtRI9ebpdtfmv-eORI",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Pool DOC",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sTRR5kBFXbaBRxPTjdUHtla1HDtRI9ebpdtfmv-eORI/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "domain_name",
+              "lookupValue": "dimensionseven.systems"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -192,
+        -496
+      ],
+      "id": "551d1e43-431c-4a4d-9d6d-974619eecb16",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1sTRR5kBFXbaBRxPTjdUHtla1HDtRI9ebpdtfmv-eORI",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Pool A",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sTRR5kBFXbaBRxPTjdUHtla1HDtRI9ebpdtfmv-eORI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "domain_name": "={{ $('Get row(s) in sheet').item.json.domain_name }}",
+            "dns_records_created": "={{ $now.format('MM/dd/yyyy') }}"
+          },
+          "matchingColumns": [
+            "domain_name"
+          ],
+          "schema": [
+            {
+              "id": "domain_name",
+              "displayName": "domain_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "domain_created",
+              "displayName": "domain_created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "domain_expires",
+              "displayName": "domain_expires",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "registrar",
+              "displayName": "registrar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "migadu_verification_record",
+              "displayName": "migadu_verification_record",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sparkpost_account",
+              "displayName": "sparkpost_account",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sparkpost_dkim_hostname",
+              "displayName": "sparkpost_dkim_hostname",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sparkpost_dkim_value",
+              "displayName": "sparkpost_dkim_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sparkpost_bounce_hostname",
+              "displayName": "sparkpost_bounce_hostname",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sparkpost_bounce_dkim_value",
+              "displayName": "sparkpost_bounce_dkim_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "dns_records_created",
+              "displayName": "dns_records_created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        704,
+        -512
+      ],
+      "id": "a3432fae-184a-482d-ad46-4a94b44bfcb4",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "8d7658b9-3ea9-4515-92d9-d0218a8e234e",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -608,
+        -496
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b589620b-6660-420b-8dd0-7392b34909f7",
+              "name": "ApiUser",
+              "value": "marionsystems",
+              "type": "string"
+            },
+            {
+              "id": "7ca17838-7ebd-49a8-88bd-30c104e7c04d",
+              "name": "ApiKey",
+              "value": "63bbae2e98164ce3a0dcb24bd51f3fbb",
+              "type": "string"
+            },
+            {
+              "id": "ef413c16-4de7-45fc-98a4-ae494373421e",
+              "name": "UserName",
+              "value": "marionsystems",
+              "type": "string"
+            },
+            {
+              "id": "1699651d-5269-4299-ad6e-0c21f5236668",
+              "name": "ClientIp",
+              "value": "162.220.232.33",
+              "type": "string"
+            },
+            {
+              "id": "65838052-5f63-4615-90b9-e81d62ee6da0",
+              "name": "Command",
+              "value": "namecheap.domains.dns.setHosts",
+              "type": "string"
+            },
+            {
+              "id": "99e242ac-642c-447e-9256-f19ca6171723",
+              "name": "BaseURL",
+              "value": "https://api.namecheap.com/xml.response?",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -416,
+        -496
+      ],
+      "id": "772ae73b-3e32-432b-9620-a018bc9e8d6e",
+      "name": "NameCheap PRODUCTION Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5b04ab60-3b23-4b39-922e-76fbb4434ade",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "ERROR",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        -432
+      ],
+      "id": "53741261-094f-4fef-b4be-72625b5d3926",
+      "name": "Records Added"
+    },
+    {
+      "parameters": {
+        "url": "https://api.namecheap.com/xml.response",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "apiuser",
+              "value": "={{ $('NameCheap PRODUCTION Data').item.json.ApiUser }}"
+            },
+            {
+              "name": "apikey",
+              "value": "={{ $('NameCheap PRODUCTION Data').item.json.ApiKey }}"
+            },
+            {
+              "name": "username",
+              "value": "={{ $('NameCheap PRODUCTION Data').item.json.ApiUser }}"
+            },
+            {
+              "name": "Command",
+              "value": "={{ $('NameCheap PRODUCTION Data').item.json.Command }}"
+            },
+            {
+              "name": "ClientIp",
+              "value": "={{ $('NameCheap PRODUCTION Data').item.json.ClientIp }}"
+            },
+            {
+              "name": "SLD",
+              "value": "={{ $json.domain_name.split('.')[0] }}"
+            },
+            {
+              "name": "TLD",
+              "value": "={{ $json.domain_name.split('.')[1] }}"
+            },
+            {
+              "name": "HostName1",
+              "value": "={{ $json.sparkpost_dkim_hostname }}._domainkey"
+            },
+            {
+              "name": "RecordType1",
+              "value": "TXT"
+            },
+            {
+              "name": "Address1",
+              "value": "=v=DKIM1; k=rsa; h=sha256; p={{ $json.sparkpost_dkim_value }}"
+            },
+            {
+              "name": "TTL1",
+              "value": "60"
+            },
+            {
+              "name": "HostName2",
+              "value": "bounce"
+            },
+            {
+              "name": "HostName2",
+              "value": "CNAME"
+            },
+            {
+              "name": "Address2",
+              "value": "sparkpostmail.com."
+            },
+            {
+              "name": "TTL2",
+              "value": "60"
+            },
+            {
+              "name": "HostName3",
+              "value": "_dmarc"
+            },
+            {
+              "name": "RecordType3",
+              "value": "TXT"
+            },
+            {
+              "name": "Address3",
+              "value": "v=DMARC1; p=quarantine; rua=mailto:admin@dimensionseven.systems"
+            },
+            {
+              "name": "TTL3",
+              "value": "60"
+            },
+            {
+              "name": "HostName4",
+              "value": "@"
+            },
+            {
+              "name": "RecordType4",
+              "value": "TXT"
+            },
+            {
+              "name": "Address4",
+              "value": "={{ $json.migadu_verification_record }}"
+            },
+            {
+              "name": "TTL4",
+              "value": "60"
+            },
+            {
+              "name": "HostName5",
+              "value": "key1._domainkey"
+            },
+            {
+              "name": "CNAME",
+              "value": "=key1.{{ $json.domain_name }}._domainkey.migadu.com."
+            },
+            {
+              "name": "TTL5",
+              "value": "60"
+            },
+            {
+              "name": "HostName6",
+              "value": "key2._domainkey"
+            },
+            {
+              "name": "RecordType6",
+              "value": "CNAME"
+            },
+            {
+              "name": "Address6",
+              "value": "=key2.{{ $json.domain_name }}._domainkey.migadu.com."
+            },
+            {
+              "name": "TTL6",
+              "value": "60"
+            },
+            {
+              "name": "HostName7",
+              "value": "key3._domainkey "
+            },
+            {
+              "name": "RecordType7",
+              "value": "CNAME"
+            },
+            {
+              "name": "Address7",
+              "value": "=key3.{{ $json.domain_name }}._domainkey.migadu.com."
+            },
+            {
+              "name": "TTL7",
+              "value": "60"
+            },
+            {
+              "name": "HostName8",
+              "value": "@"
+            },
+            {
+              "name": "RecordType8",
+              "value": "MX"
+            },
+            {
+              "name": "Address8",
+              "value": "aspmx1.migadu.com."
+            },
+            {
+              "name": "MXPref8",
+              "value": "10"
+            },
+            {
+              "name": "TTL8",
+              "value": "60"
+            },
+            {
+              "name": "HostName9",
+              "value": "@"
+            },
+            {
+              "name": "RecordType9",
+              "value": "MX"
+            },
+            {
+              "name": "Address9",
+              "value": "aspmx2.migadu.com."
+            },
+            {
+              "name": "MXPref9",
+              "value": "20"
+            },
+            {
+              "name": "TTL9",
+              "value": "60"
+            },
+            {
+              "name": "HostName10",
+              "value": "@"
+            },
+            {
+              "name": "RecordType10",
+              "value": "TXT"
+            },
+            {
+              "name": "Address10",
+              "value": "v=spf1 include:_spf.sparkpostmail.com ~all"
+            },
+            {
+              "name": "TTL10",
+              "value": "60"
+            },
+            {
+              "name": "HostName11",
+              "value": "={{ $json.sparkpost_bounce_hostname }}._domainkey.bounce"
+            },
+            {
+              "name": "RecordType11",
+              "value": "TXT"
+            },
+            {
+              "name": "Address11",
+              "value": "=v=DKIM1; k=rsa; h=sha256; p={{ $json.sparkpost_bounce_dkim_value }}"
+            },
+            {
+              "name": "TTL11",
+              "value": "60"
+            },
+            {
+              "name": "EmailType",
+              "value": "MX"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        -512
+      ],
+      "id": "d26f536d-1b3e-4c9e-9e5c-6afc79c2a226",
+      "name": "Add DNS Records Fields",
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "Add DNS Records": {
+      "main": [
+        [
+          {
+            "node": "Records Added",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Add DNS Records",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add DNS Records Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "NameCheap PRODUCTION Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NameCheap PRODUCTION Data": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Records Added": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "1874c589-b146-4010-bc62-c3b82331af9b",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-15T20:24:24.686Z",
+      "updatedAt": "2025-08-15T20:24:24.686Z",
+      "role": "workflow:owner",
+      "workflowId": "2rx4oWGLJenlXLMe",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "createdAt": "2025-05-28T19:12:21.078Z",
+      "updatedAt": "2025-08-12T18:51:53.834Z",
+      "id": "ZOHr5Dpmfo1MuDA9",
+      "name": "NAMECHEAP"
+    }
+  ]
+}

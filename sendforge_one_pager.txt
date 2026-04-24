@@ -1,0 +1,64 @@
+🚀 SendForge
+
+The cold outreach engine built for control, not compromise
+
+Why SendForge?
+
+Instantly is bloated, overpriced, and boxed in. SendForge gives you the same power — plus the freedom to control every lever of your outreach. No hidden throttles, no artificial limits. Just pure outbound firepower, forged your way.
+
+🔑 Core Features
+🎯 Granular Sending Control
+
+Send exactly X emails every Y minutes
+
+Rotate senders, domains, and IPs automatically
+
+Daily caps per mailbox so you never burn a domain
+
+📬 Unified Reply Inbox (Unibox)
+
+All replies from all inboxes flow into one dashboard
+
+Centralize conversations without logging into 20 different accounts
+
+Tag, classify, and sync replies to your CRM in real time
+
+🚫 ESP Smart Filtering
+
+Skip problem inboxes (Outlook, Yahoo, Proton)
+
+Auto-delay or reroute contacts by provider health
+
+Protect deliverability with per-ESP rules
+
+🔥 Built for Scale
+
+Works with SparkPost, SES, Mailgun, or your SMTP of choice
+
+Simple Google Sheets or Airtable control panel
+
+Scale from 100 to 100,000 emails/day without losing control
+
+🛠 How It Works
+
+Queue contacts in Google Sheets or Airtable (with personalization fields)
+
+n8n scheduler trickles them out (X per Y minutes)
+
+SparkPost API handles delivery
+
+IMAP listeners collect replies and log them centrally
+
+Your Unibox shows the full picture, all in one place
+
+💡 Why Forge It Yourself?
+
+With SendForge, you own the stack. No vendor lock-in, no mystery deliverability, no “sorry we can’t do that.” Every rule, filter, and schedule is yours to set.
+
+⚡ Tagline Ideas
+
+Forge your own path in cold outreach
+
+Send smarter. Scale harder.
+
+The outreach engine with no limits

@@ -1,0 +1,1114 @@
+{
+  "createdAt": "2025-08-23T15:41:00.223Z",
+  "updatedAt": "2025-08-31T15:35:39.051Z",
+  "id": "u9paTwjgziBDrU91",
+  "name": "SendForge - Message Dispatcher",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        -64
+      ],
+      "id": "1b9605a6-d68d-46d7-9598-fedf39503dc6"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -16,
+        -80
+      ],
+      "id": "ac7293da-cb78-40c2-95c7-7b7cb2a7dff2",
+      "name": "Loop Messages"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7adea204-c048-428c-b4e9-193cec7c091e",
+              "leftValue": "={{ $json.results.id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        -160
+      ],
+      "id": "1faf9965-f33d-4329-868a-cbb40f30681b",
+      "name": "Send Successful?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        -64
+      ],
+      "id": "e4f66efc-548d-43b7-b6fb-7bab652e62cb",
+      "name": "TODO – Fail Handling"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -80
+      ],
+      "id": "f2345fb6-dc64-4622-9c06-79dbbc14ee18",
+      "name": "Limit",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ABOGowF0Q77No85GPGt1EJ9KI6ZVIMssmng75l0qvjY",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2132523352,
+          "mode": "list",
+          "cachedResultName": "sf_message_queue",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ABOGowF0Q77No85GPGt1EJ9KI6ZVIMssmng75l0qvjY/edit#gid=2132523352"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "queued"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -688,
+        -80
+      ],
+      "id": "73194369-a843-4c4f-a080-766f4b54222c",
+      "name": "Get Messages From Queue",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Nipc9OF9bpu1OqzXeTqpXB2GCPNW9FKE_fmQYN5HJ2U",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1550508022,
+          "mode": "list",
+          "cachedResultName": "lf_contacts_ready",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nipc9OF9bpu1OqzXeTqpXB2GCPNW9FKE_fmQYN5HJ2U/edit#gid=1550508022"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "ready"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        -256
+      ],
+      "id": "e43367b3-7182-4afd-8660-85f130532061",
+      "name": "Get Contact Ready",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "=  {\n    \"q_id\": \"{{ $json.q_id }}\",\n    \"d_id\": \"{{ $json.d_id }}\",\n    \"mb_id\": \"{{ $json.mb_id }}\",\n    \"from_address\": \"{{ $json.from_address }}\",\n    \"from_name\": \"{{ $json.from_name }}\",\n    \"status\": \"{{ $json.status }}\",\n    \"send_time\": \"{{ $json.send_time }}\",\n    \"headers_json\": \"\",\n    \"metadata_json\": \"\"\n  } ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        -64
+      ],
+      "id": "9be473f7-4bc8-4b28-9308-1cd81e7c83b6",
+      "name": "Set Mailbox"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        448,
+        -160
+      ],
+      "id": "4483c45a-80ee-483d-853b-028b8398a40d",
+      "name": "Merge Mailbox + Contact"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"subject\": \"{{ $json.subject }}\",\n  \"body\": \"{{ $json.icebreaker }},\\n\\n{{ $json.value_proposition }}\\n\\n{{ $json.proof }}\\n\\n{{ $json.cta }}\\n\\n-{{ $json.from_name.split(' ')[0] }}\\n\\n{{ $json.ps }}\"\n}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        -160
+      ],
+      "id": "dfb4d25e-6a66-417f-bbfc-c9c90fbdbaaf",
+      "name": "Set Message Body"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "454c2861-c37f-4001-bbd7-20becf8364cb",
+              "leftValue": "={{ $json.send_time }}",
+              "rightValue": "={{ $now }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "beforeOrEquals"
+              }
+            },
+            {
+              "id": "3462fd61-ed2e-4999-8805-a118fa1410b7",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "queued",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -464,
+        -80
+      ],
+      "id": "c9b761cf-18c7-4bdd-9244-00f7891fbc1f",
+      "name": "Messages To Send?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.sparkpost.com/api/v1/transmissions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "options.use_sparkpost_dkim",
+              "value": "false"
+            },
+            {
+              "name": "options.transactional",
+              "value": "true"
+            },
+            {
+              "name": "options.return_path",
+              "value": "=bounce.{{ $('Merge Mailbox + Contact').item.json.from_address.split('@')[1] }}"
+            },
+            {
+              "name": "recipients[0].address.email",
+              "value": "={{ $('Merge Mailbox + Contact').item.json.email }}"
+            },
+            {
+              "name": "content.headers.X-SF-QID",
+              "value": "={{ $('Merge Mailbox + Contact').item.json.q_id }}"
+            },
+            {
+              "name": "content.from.email",
+              "value": "={{ $('Merge Mailbox + Contact').item.json.from_address }}"
+            },
+            {
+              "name": "content.from.name",
+              "value": "={{ $('Merge Mailbox + Contact').item.json.from_name }}"
+            },
+            {
+              "name": "content.subject",
+              "value": "={{ $json.subject }}"
+            },
+            {
+              "name": "content.text",
+              "value": "={{ $json.body }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        -160
+      ],
+      "id": "d9c84a14-924c-4b5c-b37a-ec953658fc77",
+      "name": "SparkPost Send Transmission",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "sFJlOVOp0ZOb2dzc",
+          "name": "SparkPost Header Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1ABOGowF0Q77No85GPGt1EJ9KI6ZVIMssmng75l0qvjY",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2132523352,
+          "mode": "list",
+          "cachedResultName": "sf_message_queue",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ABOGowF0Q77No85GPGt1EJ9KI6ZVIMssmng75l0qvjY/edit#gid=2132523352"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "sent",
+            "sent_at": "={{ $now.toISO() }}",
+            "provider_message_id": "={{ $json.results.id }}",
+            "q_id": "={{ $('Merge Mailbox + Contact').item.json.q_id }}",
+            "c_id": "={{ $('Merge Mailbox + Contact').item.json.c_id }}"
+          },
+          "matchingColumns": [
+            "q_id"
+          ],
+          "schema": [
+            {
+              "id": "q_id",
+              "displayName": "q_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "d_id",
+              "displayName": "d_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "mb_id",
+              "displayName": "mb_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "c_id",
+              "displayName": "c_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "send_time",
+              "displayName": "send_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "from_address",
+              "displayName": "from_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "from_name",
+              "displayName": "from_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sent_at",
+              "displayName": "sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "provider_message_id",
+              "displayName": "provider_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "esp",
+              "displayName": "esp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "headers_json",
+              "displayName": "headers_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "metadata_json",
+              "displayName": "metadata_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        -256
+      ],
+      "id": "37e87951-c861-491a-8405-82029568aac6",
+      "name": "Mark Message Queue Sent",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1Nipc9OF9bpu1OqzXeTqpXB2GCPNW9FKE_fmQYN5HJ2U",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1550508022,
+          "mode": "list",
+          "cachedResultName": "lf_contacts_ready",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nipc9OF9bpu1OqzXeTqpXB2GCPNW9FKE_fmQYN5HJ2U/edit#gid=1550508022"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "c_id": "={{ $json.c_id }}",
+            "status": "sent",
+            "last_sent_at": "={{ $now }}"
+          },
+          "matchingColumns": [
+            "c_id"
+          ],
+          "schema": [
+            {
+              "id": "c_id",
+              "displayName": "c_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "icebreaker",
+              "displayName": "icebreaker",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "value_proposition",
+              "displayName": "value_proposition",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "proof",
+              "displayName": "proof",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "cta",
+              "displayName": "cta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ps",
+              "displayName": "ps",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "skip_reason",
+              "displayName": "skip_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "last_sent_at",
+              "displayName": "last_sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "next_send_at",
+              "displayName": "next_send_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        -256
+      ],
+      "id": "58b4fde2-03c9-4f12-98fc-e7621308acfe",
+      "name": "Mark Contacts Ready Sent",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1Nipc9OF9bpu1OqzXeTqpXB2GCPNW9FKE_fmQYN5HJ2U",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1550508022,
+          "mode": "list",
+          "cachedResultName": "lf_contacts_ready",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nipc9OF9bpu1OqzXeTqpXB2GCPNW9FKE_fmQYN5HJ2U/edit#gid=1550508022"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "c_id": "={{ $json.c_id }}",
+            "status": "not_sent"
+          },
+          "matchingColumns": [
+            "c_id"
+          ],
+          "schema": [
+            {
+              "id": "c_id",
+              "displayName": "c_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "icebreaker",
+              "displayName": "icebreaker",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "value_proposition",
+              "displayName": "value_proposition",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "proof",
+              "displayName": "proof",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "cta",
+              "displayName": "cta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ps",
+              "displayName": "ps",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "skip_reason",
+              "displayName": "skip_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "last_sent_at",
+              "displayName": "last_sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "next_send_at",
+              "displayName": "next_send_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        -64
+      ],
+      "id": "7d25bff8-3da4-4b09-9260-21c4f04ca46d",
+      "name": "Mark Contacts Ready NOT Sent",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "* 9-16 * * 1-5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -896,
+        -80
+      ],
+      "id": "7783975b-5687-4b0e-815a-cfef5dcc36cc",
+      "name": "60 seconds/0900-1600,Weekdays"
+    }
+  ],
+  "connections": {
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Messages": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Set Mailbox",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Contact Ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Successful?": {
+      "main": [
+        [
+          {
+            "node": "Mark Message Queue Sent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "TODO – Fail Handling",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Messages From Queue": {
+      "main": [
+        [
+          {
+            "node": "Messages To Send?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Contact Ready": {
+      "main": [
+        [
+          {
+            "node": "Merge Mailbox + Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Mailbox": {
+      "main": [
+        [
+          {
+            "node": "Merge Mailbox + Contact",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Mailbox + Contact": {
+      "main": [
+        [
+          {
+            "node": "Set Message Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Message Body": {
+      "main": [
+        [
+          {
+            "node": "SparkPost Send Transmission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TODO – Fail Handling": {
+      "main": [
+        [
+          {
+            "node": "Mark Contacts Ready NOT Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Messages To Send?": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SparkPost Send Transmission": {
+      "main": [
+        [
+          {
+            "node": "Send Successful?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Message Queue Sent": {
+      "main": [
+        [
+          {
+            "node": "Mark Contacts Ready Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Contacts Ready Sent": {
+      "main": [
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Contacts Ready NOT Sent": {
+      "main": [
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "60 seconds/0900-1600,Weekdays": {
+      "main": [
+        [
+          {
+            "node": "Get Messages From Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Every 5 Minutes": {
+      "recurrenceRules": []
+    },
+    "node:5min/0900-1600,Weekdays": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "1a31fd75-1b25-46d4-9880-7918c1696467",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-08-23T15:41:00.223Z",
+      "updatedAt": "2025-08-23T15:41:00.223Z",
+      "role": "workflow:owner",
+      "workflowId": "u9paTwjgziBDrU91",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

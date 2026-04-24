@@ -1,0 +1,86 @@
+🧠 Instantly Clone – Custom Cold Email System
+
+This project replaces Instantly with a fully custom, self-hosted cold email system. It gives granular control over sending volume, reply handling, ESP filtering, and multi-domain rotation using:
+
+n8n (workflow engine & scheduler)
+
+Google Sheets or Airtable (contact & queue DB)
+
+SparkPost (outbound email via API)
+
+Migadu or similar (reply collection via IMAP)
+
+Optional: Airtable/Notion for reply dashboard (Unibox)
+
+🔧 Core Features
+1. Granular Throttling
+
+Emails are sent in small batches (e.g. 5 every 10 mins) using a loop in n8n
+
+Sending volume can be capped per mailbox/domain per day
+
+Sending logic is time-based and fully customizable
+
+2. Sender/Domain Rotation
+
+Each contact is assigned a sender identity from a pool
+
+n8n checks daily send limits and rotates senders accordingly
+
+Sender pool is stored in Sheets or Airtable
+
+3. ESP Filtering
+
+Before sending, n8n filters out bad ESPs (e.g. Outlook, Yahoo)
+
+Contacts with flagged domains are skipped, delayed, or routed differently
+
+4. Hyper-Personalization
+
+Personalized fields (e.g. intro line, CTA) are prewritten in Sheets
+
+Message templates in n8n use those tokens to generate email bodies
+
+GPT can be used upstream for automated copy generation if needed
+
+5. Reply Detection (Unibox)
+
+Replies are collected using n8n's IMAP trigger (via Migadu or similar)
+
+Reply data is matched to outbound messages using In-Reply-To or sender lookup
+
+Replies are logged in Google Sheets, Airtable, or Notion
+
+Optionally classified (e.g. positive, unsubscribe, bounce) via GPT
+
+6. Warm-Up (Optional)
+
+Self-generated warm-up threads between inboxes
+
+Fake replies created and injected at random intervals
+
+All tracked through the same logic pipeline
+
+📊 Data Flow Summary
+
+Google Sheet / Airtable holds queued contacts
+
+n8n scheduler runs every X mins → fetches eligible contacts
+
+Filters by ESP, send caps, timing rules
+
+SparkPost API sends the email using assigned sender
+
+IMAP nodes watch inboxes and pipe replies back into the system
+
+Replies are matched and logged (for central review + CRM sync)
+
+🛠 Stack
+Component	Tool
+Workflow Engine	n8n
+Contact DB / Queue	Google Sheets / Airtable
+Email Sending	SparkPost (API)
+Reply Collection	Migadu + IMAP
+Reply UI (Unibox)	Airtable / Notion
+Personalization	GPT + Sheets
+Optional CRM Sync	Zapier / Webhook

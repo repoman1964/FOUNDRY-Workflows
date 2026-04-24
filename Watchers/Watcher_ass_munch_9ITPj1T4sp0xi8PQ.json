@@ -1,0 +1,227 @@
+{
+  "createdAt": "2025-08-27T12:19:56.902Z",
+  "updatedAt": "2025-08-27T12:21:24.289Z",
+  "id": "9ITPj1T4sp0xi8PQ",
+  "name": "Watcher ass.munch",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "7859955122",
+        "text": "=",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        96
+      ],
+      "id": "9f304727-0945-42dc-b6c0-9e90f2791f81",
+      "name": "Send a text message",
+      "webhookId": "4ecd7d54-a545-40f8-a9c4-1e5b9b42e19f",
+      "credentials": {
+        "telegramApi": {
+          "id": "J7hAh8SjxHCNGGMN",
+          "name": "ReplyForgeBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "7ecb0dca-6f9e-4518-8ed3-089ff244f897",
+      "name": "hannah@ass.munch",
+      "type": "n8n-nodes-base.emailReadImap",
+      "position": [
+        -208,
+        0
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "imap": {
+          "id": "qWFhcqXKDlqyEL5F",
+          "name": "IMAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "c7a22b96-532b-4e38-99f0-ec25f605b3b4",
+      "name": "lauren@godimensionsevensystems.com",
+      "type": "n8n-nodes-base.emailReadImap",
+      "position": [
+        -208,
+        384
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "imap": {
+          "id": "wmZOr4bnIT8jKN67",
+          "name": "lauren@godimensionsevensystems.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "b8c6db97-43ab-4b01-bc9c-ceec63db62f9",
+      "name": "megan@godimensionsevensystems.com",
+      "type": "n8n-nodes-base.emailReadImap",
+      "position": [
+        -208,
+        192
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "imap": {
+          "id": "tWLkWrX23HrVMxqz",
+          "name": "megan@godimensionsevensystems.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "67f0bc24-2738-4b44-9b5c-c0b4d7b0ea25",
+      "name": "emily@godimensionsevensystems.com",
+      "type": "n8n-nodes-base.emailReadImap",
+      "position": [
+        -208,
+        -192
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "imap": {
+          "id": "99XpkesHWR9Qs6bC",
+          "name": "emily@godimensionsevensystems.com"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "hannah@godimensionsevensystems.com": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "lauren@godimensionsevensystems.com": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "megan@godimensionsevensystems.com": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "emily@godimensionsevensystems.com": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "errorWorkflow": "VzqKEW0ShTXA5vPj",
+    "timezone": "America/New_York",
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "140f5d86-85df-4b77-8aae-1e37401ee7cd",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-27T12:19:56.902Z",
+      "updatedAt": "2025-08-27T12:19:56.902Z",
+      "role": "workflow:owner",
+      "workflowId": "9ITPj1T4sp0xi8PQ",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

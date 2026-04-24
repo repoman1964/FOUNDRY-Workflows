@@ -1,0 +1,1032 @@
+{
+  "createdAt": "2025-08-13T16:52:06.958Z",
+  "updatedAt": "2025-08-31T15:14:51.445Z",
+  "id": "qtmL9ibRDFMop5du",
+  "name": "ConfigForge - SUB Add Domain To Migadu",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1616,
+        -640
+      ],
+      "id": "c22b3e6e-1757-4aad-a795-e056c78c37ed",
+      "name": "When clicking ‘Execute workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "profileName": "MigaduPlatform",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        -1184,
+        -720
+      ],
+      "id": "ff96f6c9-b26e-4ea2-9e1b-15343d58a178",
+      "name": "Create a session",
+      "credentials": {
+        "airtopApi": {
+          "id": "wyBtRqKq8XYcBuW4",
+          "name": "Airtop Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "window",
+        "url": "https://admin.migadu.com/public/login",
+        "additionalFields": {
+          "waitUntil": "load"
+        }
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        -976,
+        -720
+      ],
+      "id": "1405e29c-5236-4708-a782-7b99cec63d20",
+      "name": "Create a window",
+      "credentials": {
+        "airtopApi": {
+          "id": "wyBtRqKq8XYcBuW4",
+          "name": "Airtop Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "operation": "fill",
+        "formData": "\"Account (email): jmadarieta3@gmail.com, Password: 8VXha$Slg@pcSe\""
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        -736,
+        -720
+      ],
+      "id": "cfe4db9f-a28a-4453-a49b-4e4c43373016",
+      "name": "Fill form",
+      "credentials": {
+        "airtopApi": {
+          "id": "wyBtRqKq8XYcBuW4",
+          "name": "Airtop Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "White button labeled \"Sign In\" ",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        -720
+      ],
+      "id": "31bd84b9-2548-4bbe-85d2-a595e8e9e8fc",
+      "name": "Click Sign In",
+      "credentials": {
+        "airtopApi": {
+          "id": "wyBtRqKq8XYcBuW4",
+          "name": "Airtop Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "Green text buttton in the upper rleft area of the screen with text \"New Domain\" ",
+        "additionalFields": {
+          "waitForNavigation": "load"
+        }
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        -720
+      ],
+      "id": "395a90b1-6c82-492e-b0f5-fb5ecf26c326",
+      "name": "Click New Domain",
+      "credentials": {
+        "airtopApi": {
+          "id": "wyBtRqKq8XYcBuW4",
+          "name": "Airtop Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "operation": "type",
+        "text": "={{ $('When Executed by Another Workflow').item.json.name }}",
+        "elementDescription": "Text box labeled \"Domain name\"",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        384,
+        -720
+      ],
+      "id": "983af391-2484-4ee5-b14b-ced3fa55599b",
+      "name": "Type Domain Name",
+      "credentials": {
+        "airtopApi": {
+          "id": "wyBtRqKq8XYcBuW4",
+          "name": "Airtop Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "White button labeled \"Add Email Domain\"",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -720
+      ],
+      "id": "a94a8ad6-e480-4e02-96b7-2e8ffd21b930",
+      "name": "Click an element",
+      "credentials": {
+        "airtopApi": {
+          "id": "wyBtRqKq8XYcBuW4",
+          "name": "Airtop Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "extraction",
+        "operation": "query",
+        "prompt": "return the value of a <b> tag that is also nested inside a <td> tag. the value starts with \"hosted-email-verify\". return the entire value",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        -720
+      ],
+      "id": "c2655b18-8c12-4a0d-a32d-76a0a54bd5cf",
+      "name": "Query page",
+      "credentials": {
+        "airtopApi": {
+          "id": "wyBtRqKq8XYcBuW4",
+          "name": "Airtop Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "terminate"
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        -720
+      ],
+      "id": "2ba43dae-a4fb-4c8e-b88d-2aa49015dc54",
+      "name": "Terminate a session",
+      "credentials": {
+        "airtopApi": {
+          "id": "wyBtRqKq8XYcBuW4",
+          "name": "Airtop Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1.3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -288,
+        -720
+      ],
+      "id": "a59dd6fa-7269-4e86-8f8e-e16b8afdae98",
+      "name": "Wait",
+      "webhookId": "a959a48a-1181-4d1f-b2ce-88b1456a20be"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        -720
+      ],
+      "id": "6d8a31f4-6766-4d15-a337-9924acbaaee7",
+      "name": "Wait1",
+      "webhookId": "30dde085-137d-4ae5-8245-0096160a76c4"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        832,
+        -720
+      ],
+      "id": "da5052a4-ddda-4e0b-b8ee-6e8682b5ef2a",
+      "name": "Wait2",
+      "webhookId": "f7986d72-e756-4ab9-ae35-07e157c24267"
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "\n  {\n      \n      \"name\": \"dimensionseven.systems\"\n    }\n  "
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1616,
+        -832
+      ],
+      "id": "441a5c57-d3a8-47ce-a689-a79b9668f447",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1311570217,
+          "mode": "list",
+          "cachedResultName": "cf_domains",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4/edit#gid=1311570217"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "migadu_verification_record": "={{ $('Query page').item.json.data.modelResponse }}",
+            "domain": "={{ $('When Executed by Another Workflow').item.json.name }}"
+          },
+          "matchingColumns": [
+            "domain"
+          ],
+          "schema": [
+            {
+              "id": "d_id",
+              "displayName": "d_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "domain",
+              "displayName": "domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "registrar",
+              "displayName": "registrar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "pool",
+              "displayName": "pool",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "registered",
+              "displayName": "registered",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "expires",
+              "displayName": "expires",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "warmup_mode",
+              "displayName": "warmup_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sends_today",
+              "displayName": "sends_today",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "domain_send_cap",
+              "displayName": "domain_send_cap",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "week_index",
+              "displayName": "week_index",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "health_status",
+              "displayName": "health_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "migadu_verification_record",
+              "displayName": "migadu_verification_record",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sparkpost_account",
+              "displayName": "sparkpost_account",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sparkpost_dkim_hostname",
+              "displayName": "sparkpost_dkim_hostname",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sparkpost_dkim_value",
+              "displayName": "sparkpost_dkim_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sparkpost_bounce_hostname",
+              "displayName": "sparkpost_bounce_hostname",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sparkpost_bounce_dkim_value",
+              "displayName": "sparkpost_bounce_dkim_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "dns_records_created",
+              "displayName": "dns_records_created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "dns_records_verified",
+              "displayName": "dns_records_verified",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1488,
+        -720
+      ],
+      "id": "24fe4711-8088-49ac-9fdc-276d473f8833",
+      "name": "Update Domain",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Airtop",
+        "height": 272,
+        "width": 2656
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1232,
+        -816
+      ],
+      "typeVersion": 1,
+      "id": "6a51409a-d718-4e0f-87ee-ab5e3f6ed221",
+      "name": "Sticky Note"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Create a session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a session": {
+      "main": [
+        [
+          {
+            "node": "Create a window",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a window": {
+      "main": [
+        [
+          {
+            "node": "Fill form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fill form": {
+      "main": [
+        [
+          {
+            "node": "Click Sign In",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click Sign In": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click New Domain": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Type Domain Name": {
+      "main": [
+        [
+          {
+            "node": "Click an element",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click an element": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query page": {
+      "main": [
+        [
+          {
+            "node": "Terminate a session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Click New Domain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Type Domain Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Query page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Create a session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Terminate a session": {
+      "main": [
+        [
+          {
+            "node": "Update Domain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateId": "3592",
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "name": "dimensionsevensystemsai.com"
+        }
+      }
+    ],
+    "When clicking ‘Execute workflow’": [
+      {
+        "json": {}
+      }
+    ],
+    "Create a session": [
+      {
+        "json": {
+          "sessionId": "de82b51a-3f82-43d8-80dd-4f6d72920eed",
+          "meta": {
+            "requestId": "kF2YWmvQv5"
+          },
+          "data": {
+            "id": "de82b51a-3f82-43d8-80dd-4f6d72920eed",
+            "status": "initializing",
+            "dateCreated": "2025-08-28T15:42:58.168113742Z",
+            "lastActivity": "0001-01-01T00:00:00Z",
+            "configuration": {
+              "baseProfileId": "MigaduPlatform",
+              "timeoutMinutes": 10
+            },
+            "cdpUrl": "https://api.airtop.ai/cdp/de82b51a-3f82-43d8-80dd-4f6d72920eed",
+            "cdpWsUrl": "wss://api.airtop.ai/cdpws/de82b51a-3f82-43d8-80dd-4f6d72920eed",
+            "chromedriverUrl": "https://api.airtop.ai/chromedriver/de82b51a-3f82-43d8-80dd-4f6d72920eed"
+          },
+          "errors": null,
+          "warnings": []
+        }
+      }
+    ],
+    "Create a window": [
+      {
+        "json": {
+          "sessionId": "de82b51a-3f82-43d8-80dd-4f6d72920eed",
+          "windowId": "0049617d-4852-49d8-9718-533bb366e9af",
+          "meta": {
+            "requestId": "RQ2T6cOzam"
+          },
+          "data": {
+            "windowId": "0049617d-4852-49d8-9718-533bb366e9af",
+            "targetId": "55C2AEA9B0666E0EC8534DEBD73F8833"
+          },
+          "errors": null,
+          "warnings": null
+        }
+      }
+    ],
+    "Fill form": [
+      {
+        "json": {
+          "sessionId": "de82b51a-3f82-43d8-80dd-4f6d72920eed",
+          "windowId": "0049617d-4852-49d8-9718-533bb366e9af",
+          "status": "completed",
+          "response": {
+            "meta": {
+              "requestId": "67c9837a-f471-4e62-8cf6-769ee3f48b0f",
+              "status": "success",
+              "usage": {
+                "id": "67c9837a-f471-4e62-8cf6-769ee3f48b0f",
+                "credits": 1
+              },
+              "clientProvided": {}
+            },
+            "data": {
+              "modelResponse": "{\"automationId\":\"auto\",\"success\":true,\"message\":\"Automation executed successfully\"}"
+            },
+            "errors": [],
+            "warnings": []
+          }
+        }
+      }
+    ],
+    "Click Sign In": [
+      {
+        "json": {
+          "sessionId": "de82b51a-3f82-43d8-80dd-4f6d72920eed",
+          "windowId": "0049617d-4852-49d8-9718-533bb366e9af",
+          "meta": {
+            "requestId": "a0cc7ab0-db8e-4d33-a4b8-3a3537ed0a4a",
+            "status": "success",
+            "usage": {
+              "id": "a0cc7ab0-db8e-4d33-a4b8-3a3537ed0a4a",
+              "credits": 20
+            },
+            "clientProvided": {}
+          },
+          "data": {
+            "modelResponse": "Click operation completed"
+          },
+          "errors": [],
+          "warnings": []
+        }
+      }
+    ],
+    "Wait": [
+      {
+        "json": {
+          "sessionId": "de82b51a-3f82-43d8-80dd-4f6d72920eed",
+          "windowId": "0049617d-4852-49d8-9718-533bb366e9af",
+          "meta": {
+            "requestId": "a0cc7ab0-db8e-4d33-a4b8-3a3537ed0a4a",
+            "status": "success",
+            "usage": {
+              "id": "a0cc7ab0-db8e-4d33-a4b8-3a3537ed0a4a",
+              "credits": 20
+            },
+            "clientProvided": {}
+          },
+          "data": {
+            "modelResponse": "Click operation completed"
+          },
+          "errors": [],
+          "warnings": []
+        }
+      }
+    ],
+    "Click New Domain": [
+      {
+        "json": {
+          "sessionId": "de82b51a-3f82-43d8-80dd-4f6d72920eed",
+          "windowId": "0049617d-4852-49d8-9718-533bb366e9af",
+          "meta": {
+            "requestId": "fae3828a-6536-49d5-9f78-054e6ce87bff",
+            "status": "success",
+            "usage": {
+              "id": "fae3828a-6536-49d5-9f78-054e6ce87bff",
+              "credits": 20
+            },
+            "clientProvided": {}
+          },
+          "data": {
+            "modelResponse": "Click operation completed"
+          },
+          "errors": [],
+          "warnings": []
+        }
+      }
+    ],
+    "Type Domain Name": [
+      {
+        "json": {
+          "sessionId": "de82b51a-3f82-43d8-80dd-4f6d72920eed",
+          "windowId": "0049617d-4852-49d8-9718-533bb366e9af",
+          "meta": {
+            "requestId": "9139fe34-bbea-452b-8901-07c51475d01b",
+            "status": "success",
+            "usage": {
+              "id": "9139fe34-bbea-452b-8901-07c51475d01b",
+              "credits": 20
+            },
+            "clientProvided": {}
+          },
+          "data": {
+            "modelResponse": "Type operation completed"
+          },
+          "errors": [],
+          "warnings": []
+        }
+      }
+    ],
+    "Click an element": [
+      {
+        "json": {
+          "sessionId": "de82b51a-3f82-43d8-80dd-4f6d72920eed",
+          "windowId": "0049617d-4852-49d8-9718-533bb366e9af",
+          "meta": {
+            "requestId": "d24475ad-ee66-4c1e-aca9-0c9597fa7df6",
+            "status": "success",
+            "usage": {
+              "id": "d24475ad-ee66-4c1e-aca9-0c9597fa7df6",
+              "credits": 24
+            },
+            "clientProvided": {}
+          },
+          "data": {
+            "modelResponse": "Click operation completed"
+          },
+          "errors": [],
+          "warnings": []
+        }
+      }
+    ],
+    "Wait1": [
+      {
+        "json": {
+          "sessionId": "de82b51a-3f82-43d8-80dd-4f6d72920eed",
+          "windowId": "0049617d-4852-49d8-9718-533bb366e9af",
+          "meta": {
+            "requestId": "fae3828a-6536-49d5-9f78-054e6ce87bff",
+            "status": "success",
+            "usage": {
+              "id": "fae3828a-6536-49d5-9f78-054e6ce87bff",
+              "credits": 20
+            },
+            "clientProvided": {}
+          },
+          "data": {
+            "modelResponse": "Click operation completed"
+          },
+          "errors": [],
+          "warnings": []
+        }
+      }
+    ],
+    "Wait2": [
+      {
+        "json": {
+          "sessionId": "de82b51a-3f82-43d8-80dd-4f6d72920eed",
+          "windowId": "0049617d-4852-49d8-9718-533bb366e9af",
+          "meta": {
+            "requestId": "d24475ad-ee66-4c1e-aca9-0c9597fa7df6",
+            "status": "success",
+            "usage": {
+              "id": "d24475ad-ee66-4c1e-aca9-0c9597fa7df6",
+              "credits": 24
+            },
+            "clientProvided": {}
+          },
+          "data": {
+            "modelResponse": "Click operation completed"
+          },
+          "errors": [],
+          "warnings": []
+        }
+      }
+    ],
+    "Query page": [
+      {
+        "json": {
+          "sessionId": "de82b51a-3f82-43d8-80dd-4f6d72920eed",
+          "windowId": "0049617d-4852-49d8-9718-533bb366e9af",
+          "meta": {
+            "requestId": "89f1e4ea-b4d6-4f4a-a023-2f09a8b0c064",
+            "status": "success",
+            "usage": {
+              "id": "89f1e4ea-b4d6-4f4a-a023-2f09a8b0c064",
+              "credits": 7
+            },
+            "clientProvided": {}
+          },
+          "data": {
+            "modelResponse": "hosted-email-verify=ix6dxxjh"
+          },
+          "errors": [],
+          "warnings": []
+        }
+      }
+    ],
+    "Terminate a session": [
+      {
+        "json": {
+          "success": true
+        }
+      }
+    ]
+  },
+  "versionId": "711b61a2-f66f-4d52-accf-4ace3e5076da",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-13T16:52:06.958Z",
+      "updatedAt": "2025-08-13T16:52:06.958Z",
+      "role": "workflow:owner",
+      "workflowId": "qtmL9ibRDFMop5du",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "createdAt": "2025-05-28T19:12:21.078Z",
+      "updatedAt": "2025-08-12T18:51:53.834Z",
+      "id": "ZOHr5Dpmfo1MuDA9",
+      "name": "NAMECHEAP"
+    },
+    {
+      "createdAt": "2025-08-05T13:35:00.920Z",
+      "updatedAt": "2025-08-05T13:35:00.920Z",
+      "id": "cDXrZ944bCY9Yuxz",
+      "name": "AIRTOP"
+    },
+    {
+      "createdAt": "2025-08-11T21:37:06.934Z",
+      "updatedAt": "2025-08-11T21:37:06.934Z",
+      "id": "dPlfEljbKGNfHYxF",
+      "name": "MY"
+    },
+    {
+      "createdAt": "2025-08-13T13:01:19.427Z",
+      "updatedAt": "2025-08-13T13:01:19.427Z",
+      "id": "tW9zhd4sBQJS8BjS",
+      "name": "MIGADU"
+    }
+  ]
+}

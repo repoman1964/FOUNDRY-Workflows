@@ -1,0 +1,803 @@
+{
+  "createdAt": "2025-08-29T15:13:27.845Z",
+  "updatedAt": "2025-08-31T15:13:48.692Z",
+  "id": "luMk4sz0JBqnmNfh",
+  "name": "SendForge - Daily Scheduler",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 6 * * 1-5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1872,
+        -144
+      ],
+      "id": "1413f102-c342-4416-9663-557348665c08",
+      "name": "WeekDays/6:30AM"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pointer-Anchored Daily Scheduler\n// Keeps your time randomness, anchors mailbox rotation at rr_ptr, then advances rr_ptr.\n\n// ===== keep your existing constants/helpers =====\nconst DEFAULT_DAY_SHAPE = [\n  { start: \"09:00\", end: \"10:00\", w: 0.7 },\n  { start: \"10:00\", end: \"12:00\", w: 1.4 },\n  { start: \"12:00\", end: \"13:00\", w: 0.4 },\n  { start: \"13:00\", end: \"15:00\", w: 1.4 },\n  { start: \"15:00\", end: \"16:00\", w: 0.8 },\n  { start: \"16:00\", end: \"17:00\", w: 0.6 },\n];\nconst MAX_SLOTS_PER_MINUTE = null;\n\nconst isTrue = v => v === true || String(v).toLowerCase() === \"true\";\n\nfunction makeQid() {\n  const n = Math.floor(Math.random() * 1e7).toString().padStart(7, \"0\");\n  return `sf-${n}`;\n}\nfunction parseHHMM(s){ const [hh,mm]=String(s||\"\").split(\":\").map(Number); return {hh:hh||0, mm:mm||0}; }\nfunction minutesFromHHMM(s){ const t=parseHHMM(s); return t.hh*60+t.mm; }\nconst clamp = (x,a,b)=>Math.max(a,Math.min(b,x));\nconst getEmailDomain = addr => String(addr||\"\").split(\"@\")[1] || \"\";\n\nfunction xmur3(str){ let h=1779033703^str.length; for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),3432918353); h=(h<<13)|(h>>>19); } return function(){ h=Math.imul(h^(h>>>16),2246822507); h=Math.imul(h^(h>>>13),3266489909); return (h^=h>>>16)>>>0; }; }\nfunction mulberry32(a){ return function(){ let t=(a+=0x6D2B79F5); t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; }\nfunction seededShuffle(arr, seedStr){\n  const seed = xmur3(seedStr)();\n  const rnd = mulberry32(seed);\n  const a = arr.slice();\n  for (let i=a.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); const tmp=a[i]; a[i]=a[j]; a[j]=tmp; }\n  return a;\n}\n\nfunction buildMinuteWeights(windowStart, windowEnd, shape){\n  const start = minutesFromHHMM(windowStart);\n  const end   = minutesFromHHMM(windowEnd);\n  const mins = []; for (let m=start; m<end; m++) mins.push({ m, w:1 });\n  if (Array.isArray(shape)){\n    for (const seg of shape){\n      if (!seg || !seg.start || !seg.end) continue;\n      const s = clamp(minutesFromHHMM(seg.start), start, end);\n      const e = clamp(minutesFromHHMM(seg.end), start, end);\n      const weight = Number(seg.w ?? 1); if (!Number.isFinite(weight) || weight <= 0) continue;\n      for (let m=s; m<e; m++){ const idx=m-start; mins[idx].w = (mins[idx].w||1) * weight; }\n    }\n  }\n  return { start, end, mins };\n}\nfunction buildCDF(weights){\n  let total=0; const w2=[]; for (let i=0;i<weights.length;i++){ const w=Math.max(0,weights[i]); w2.push(w); total+=w; }\n  if (total<=0) return { total:0, cdf:[] };\n  const cdf=[]; let acc=0; for (let i=0;i<w2.length;i++){ acc+=w2[i]; cdf.push(acc/total); }\n  return { total, cdf };\n}\nfunction pickIndexFromCDF(cdf, r){\n  let lo=0, hi=cdf.length-1, ans=hi;\n  while (lo<=hi){ const mid=(lo+hi)>>1; if (cdf[mid]>=r){ ans=mid; hi=mid-1; } else lo=mid+1; }\n  return ans;\n}\nfunction sampleSlotsWeighted({ minuteWeights, count, dateLocalISO, maxPerMinute }){\n  if (maxPerMinute === undefined) maxPerMinute = MAX_SLOTS_PER_MINUTE;\n  const weights = minuteWeights.mins.map(x => Math.max(0, x.w));\n  const built = buildCDF(weights);\n  if (built.total<=0 || built.cdf.length===0 || count<=0) return [];\n  const perMinute = new Map(); const out=[]; const MAX_TRIES = count*10;\n  let tries=0;\n  while (out.length < count && tries < MAX_TRIES){\n    tries++;\n    const idx = pickIndexFromCDF(built.cdf, Math.random());\n    const mmAbs = minuteWeights.mins[idx].m;\n    if (maxPerMinute != null){\n      const used = perMinute.get(mmAbs) || 0;\n      if (used >= maxPerMinute) continue;\n      perMinute.set(mmAbs, used+1);\n    }\n    const hh = String(Math.floor(mmAbs/60)).padStart(2,\"0\");\n    const mm = String(mmAbs%60).padStart(2,\"0\");\n    const ss = String(Math.floor(Math.random()*60)).padStart(2,\"0\");\n    out.push(`${dateLocalISO}T${hh}:${mm}:${ss}`);\n  }\n  out.sort();\n  return out;\n}\n\n// ===== main: build domain buckets from merged inputs (domains + mailboxes) =====\nconst rows = $input.all().map(i => i.json);\nconst domains = new Map();\n\nfor (const r of rows){\n  const settingsDomain = String(r.domain || \"\").toLowerCase();\n  const mailboxEmail = r[\"email address\"] || r.email;\n  const mailboxDomain = getEmailDomain(mailboxEmail).toLowerCase();\n  if (!settingsDomain || mailboxDomain !== settingsDomain) continue;\n  if (!isTrue(r.active) || isTrue(r.paused)) continue;\n\n  if (!domains.has(settingsDomain)){\n    let shape = DEFAULT_DAY_SHAPE;\n    if (r.shape_json){\n      try { const parsed = JSON.parse(String(r.shape_json)); if (Array.isArray(parsed) && parsed.length) shape = parsed; } catch(e){}\n    }\n    domains.set(settingsDomain, {\n      settings: {\n        d_id: r.d_id,\n        domain: settingsDomain,\n        window_start_local: r.window_start_local || \"09:00\",\n        window_end_local:   r.window_end_local   || \"17:00\",\n        timezone: r.timezone || \"America/New_York\",\n        max_daily_sends: Number(r.max_daily_sends ?? 0),\n        pause_all: isTrue(r.pause_all),\n        shape,\n        // NEW: pointer fields coming straight from cf_domain_settings\n        rr_ptr: Number(r.rr_ptr || 0),\n        ptr_step: (r.ptr_step || \"1\"),  // \"1\" or \"N\"\n      },\n      mailboxes: new Map(),\n    });\n  }\n\n  const bucket = domains.get(settingsDomain);\n  if (!bucket.mailboxes.has(r.mb_id)){\n    bucket.mailboxes.set(r.mb_id, {\n      mb_id: r.mb_id,\n      d_id: r.d_id,\n      from_address: mailboxEmail,\n      from_name: r.full_name || (String(r[\"first name\"]||\"\") + \" \" + String(r[\"last name\"]||\"\")).trim(),\n      cap: Math.max(0, Number(r.mailbox_send_cap ?? 0)), // mailbox-level cap\n      allocated: 0,\n    });\n  }\n}\n\n// ===== schedule for today =====\nconst now = new Date();\nconst todayISO = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,\"0\")}-${String(now.getDate()).padStart(2,\"0\")}`;\nconst out = [];\n\nfor (const [dom, data] of domains.entries()){\n  const s = data.settings;\n  if (s.pause_all) continue;\n\n  const domainBudget = Number(s.max_daily_sends || 0);\n  if (!Number.isFinite(domainBudget) || domainBudget <= 0) continue;\n\n  // build eligible mailbox list\n  let mbs = Array.from(data.mailboxes.values()).filter(mb => mb.cap > 0);\n  if (mbs.length === 0) continue;\n\n  // keep your seeded randomness for mailbox order (per domain/day) …\n  mbs = seededShuffle(mbs, dom + \"|\" + todayISO);\n\n  // …but START at rr_ptr (pointer-anchored rotation)\n  const M = mbs.length;\n  const start = ((s.rr_ptr % M) + M) % M;\n  if (start > 0) mbs = mbs.slice(start).concat(mbs.slice(0, start));\n\n  // build weighted time slots for today\n  const minuteWeights = buildMinuteWeights(s.window_start_local, s.window_end_local, s.shape);\n  const slots = sampleSlotsWeighted({ minuteWeights, count: domainBudget, dateLocalISO: todayISO });\n  if (!slots.length) continue;\n\n  // fair first pass (one each) then RR until cap hit – same as before\n  let slotIdx = 0;\n  for (let i=0; i<mbs.length && slotIdx<slots.length; i++){\n    const mb = mbs[i];\n    if (mb.allocated < mb.cap){\n      out.push({\n        qid: makeQid(),\n        d_id: mb.d_id,\n        status: \"queued\",\n        mb_id: mb.mb_id,\n        send_time: slots[slotIdx],\n        send_time_local: slots[slotIdx],\n        timezone: s.timezone,\n        from_address: mb.from_address,\n        from_name: mb.from_name,\n        domain: dom,\n      });\n      mb.allocated += 1;\n      slotIdx += 1;\n    }\n  }\n\n  let rr = 0;\n  while (slotIdx < slots.length){\n    let assigned = false;\n    for (let hop=0; hop<mbs.length; hop++){\n      const idx = (rr + hop) % mbs.length;\n      const mb = mbs[idx];\n      if (mb.allocated < mb.cap){\n        out.push({\n          qid: makeQid(),\n          d_id: mb.d_id,\n          status: \"queued\",\n          mb_id: mb.mb_id,\n          send_time: slots[slotIdx],\n          send_time_local: slots[slotIdx],\n          timezone: s.timezone,\n          from_address: mb.from_address,\n          from_name: mb.from_name,\n          domain: dom,\n        });\n        mb.allocated += 1;\n        slotIdx += 1;\n        rr = (idx + 1) % mbs.length;\n        assigned = true;\n        break;\n      }\n    }\n    if (!assigned) break;\n  }\n\n  // how many did we actually assign today?\n  const created = out.filter(x => x.domain === dom).length;\n\n  // advance pointer\n  const step = (String(s.ptr_step).toUpperCase() === \"N\") ? Math.max(1, created) : 1;\n  const new_rr_ptr = ( (s.rr_ptr % M) + step ) % M;\n\n  // emit control record to update cf_domain_settings.rr_ptr\n  out.push({ _control: \"update_rr_ptr\", domain: dom, new_rr_ptr });\n}\n\n// ===== return queue rows + control rows =====\nif (!out.length) return [{ json: { __debug: \"no-rows\", domainsSeen: domains.size } }];\nreturn out.map(json => ({ json }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -896,
+        -128
+      ],
+      "id": "aa2e31e0-e6fc-4a5e-a0b7-46730d91fcc9",
+      "name": "Create Queued Message Slots",
+      "alwaysOutputData": false,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ABOGowF0Q77No85GPGt1EJ9KI6ZVIMssmng75l0qvjY",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2132523352,
+          "mode": "list",
+          "cachedResultName": "sf_message_queue",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ABOGowF0Q77No85GPGt1EJ9KI6ZVIMssmng75l0qvjY/edit#gid=2132523352"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "q_id": "={{ $json.qid }}",
+            "d_id": "={{ $json.d_id }}",
+            "status": "={{ $json.status }}",
+            "mb_id": "={{ $json.mb_id }}",
+            "send_time": "={{ $json.send_time }}",
+            "from_address": "={{ $json.from_address }}",
+            "from_name": "={{ $json.from_name }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "q_id",
+              "displayName": "q_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "d_id",
+              "displayName": "d_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mb_id",
+              "displayName": "mb_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "c_id",
+              "displayName": "c_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "send_time",
+              "displayName": "send_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "from_address",
+              "displayName": "from_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "from_name",
+              "displayName": "from_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sent_at",
+              "displayName": "sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "provider_message_id",
+              "displayName": "provider_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "esp",
+              "displayName": "esp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "headers_json",
+              "displayName": "headers_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "metadata_json",
+              "displayName": "metadata_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -496,
+        -16
+      ],
+      "id": "3b3a5c1a-1010-443e-8a01-94e3ec0c8860",
+      "name": "Add To Message Que",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1700968550,
+          "mode": "list",
+          "cachedResultName": "cf_mailboxes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4/edit#gid=1700968550"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "active",
+              "lookupValue": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1264,
+        -224
+      ],
+      "id": "f6850ae8-bc42-474a-87e9-22d62067f67f",
+      "name": "Get Mailboxes",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 267697252,
+          "mode": "list",
+          "cachedResultName": "cf_domain_settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4/edit#gid=267697252"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1264,
+        -32
+      ],
+      "id": "b531191f-30f6-47c3-97b2-2c7528102d68",
+      "name": "Get Domains",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1056,
+        -128
+      ],
+      "id": "073b5440-5750-4b1b-b475-4d8fdd4fdc48",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d9120a87-c13f-4c05-bf73-6248f9479069",
+              "leftValue": "={{ $json._control }}",
+              "rightValue": "update_rr_ptr",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -720,
+        -128
+      ],
+      "id": "5ff51664-cdac-4c77-93c8-e5d1e4b5bffb",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 267697252,
+          "mode": "list",
+          "cachedResultName": "cf_domain_settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4/edit#gid=267697252"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "domain": "={{ $json.domain }}",
+            "rr_ptr": "={{ $json.new_rr_ptr }}"
+          },
+          "matchingColumns": [
+            "domain"
+          ],
+          "schema": [
+            {
+              "id": "d_id",
+              "displayName": "d_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "domain",
+              "displayName": "domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "window_start_local",
+              "displayName": "window_start_local",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "window_end_local",
+              "displayName": "window_end_local",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "timezone",
+              "displayName": "timezone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "jitter_min",
+              "displayName": "jitter_min",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "jitter_max",
+              "displayName": "jitter_max",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ramp_mode",
+              "displayName": "ramp_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ramp_steps",
+              "displayName": "ramp_steps",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "pause_all",
+              "displayName": "pause_all",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "batch_size",
+              "displayName": "batch_size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "batch_interval_minutes",
+              "displayName": "batch_interval_minutes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "max_daily_sends",
+              "displayName": "max_daily_sends",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "use_esp_filter",
+              "displayName": "use_esp_filter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "rr_ptr",
+              "displayName": "rr_ptr",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ptr_step",
+              "displayName": "ptr_step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -496,
+        -208
+      ],
+      "id": "ea32f7fa-df74-414f-baab-5384d47e2e08",
+      "name": "Update rr pointer",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1796641227,
+          "mode": "list",
+          "cachedResultName": "cf_holidays_us",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4/edit#gid=1796641227"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "date",
+              "lookupValue": "={{ $now.format('yyyy-MM-dd') }}"
+            },
+            {
+              "lookupColumn": "country",
+              "lookupValue": "US"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": false
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1696,
+        -144
+      ],
+      "id": "a67726ef-1725-4048-b221-c1e84152fa95",
+      "name": "Get Holidays",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "71ab95a3-757b-47a6-9369-086a78a67998",
+              "leftValue": "={{ $json.note }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1520,
+        -144
+      ],
+      "id": "7c235848-8545-47fa-9b81-b7fa586534d8",
+      "name": "Is Today a Holiday?"
+    }
+  ],
+  "connections": {
+    "WeekDays/6:30AM": {
+      "main": [
+        [
+          {
+            "node": "Get Holidays",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Queued Message Slots": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Mailboxes": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Domains": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Create Queued Message Slots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Update rr pointer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add To Message Que",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Holidays": {
+      "main": [
+        [
+          {
+            "node": "Is Today a Holiday?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Today a Holiday?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Get Domains",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Mailboxes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Daily/6:30AM": {
+      "recurrenceRules": []
+    },
+    "node:WeekDays/6:30AM": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "20a97715-01ba-4a46-9af4-3c018519fd6e",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-08-29T15:13:27.845Z",
+      "updatedAt": "2025-08-29T15:13:27.845Z",
+      "role": "workflow:owner",
+      "workflowId": "luMk4sz0JBqnmNfh",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

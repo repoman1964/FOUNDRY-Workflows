@@ -1,0 +1,564 @@
+{
+  "createdAt": "2025-08-26T20:48:36.597Z",
+  "updatedAt": "2025-08-31T15:11:47.515Z",
+  "id": "s4jBy61QWaqHYeXk",
+  "name": "ReplyForge - Create Watcher",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "chatIds": "7859955122"
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1024,
+        64
+      ],
+      "id": "0d09c655-6630-4647-9d98-9d3c162aee5e",
+      "name": "Telegram Trigger",
+      "webhookId": "c018796d-468b-45f3-844e-d259e28b29d0",
+      "credentials": {
+        "telegramApi": {
+          "id": "J7hAh8SjxHCNGGMN",
+          "name": "ReplyForgeBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://primary-production-26ac.up.railway.app/api/v1/credentials",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-KEY",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhNjM1YTRkOC1mZDM3LTQ2ODAtODljYS04NjM3MzJkNjE3MWMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzU2MjM0NTE5LCJleHAiOjE3NTg3NzI4MDB9.kVD0xpVNJchRO3uXCzfyC72cMRQUnryRkBDeC4bx0p8"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $json['email address'] }}\",\n  \"type\": \"imap\",\n  \"data\": {\n    \"user\": \"{{ $json['email address'] }}\",\n    \"password\": \"{{ $json.password }}\",\n    \"host\": \"imap.migadu.com\",\n    \"port\": 993,\n    \"secure\": true\n  }\n}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1008,
+        0
+      ],
+      "id": "8ba2439d-5241-4f2f-82b8-74db0f3b3ea3",
+      "name": "Create IMAP Credential"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        80
+      ],
+      "id": "0f094eda-ef1b-4be6-8809-517d12e5bc13"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        560,
+        0
+      ],
+      "id": "370adee2-909d-41f5-ae3e-1f9a416be984",
+      "name": "Loop Over MailBox Names"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f95a451b-d234-4772-974d-67612ddaa2ba",
+              "name": "domain",
+              "value": "={{ $json.data['Domain Name'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -336,
+        0
+      ],
+      "id": "d1f2fc10-f552-48c3-92e9-e11c13143e4a",
+      "name": "Set Domain"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "mailboxes",
+        "options": {
+          "destinationFieldName": "mailbox"
+        }
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        112,
+        0
+      ],
+      "id": "22920e68-3be5-4c14-99cf-89199aa8bbd3",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={ \"mailboxes\": [ \"emily@{{ $json.domain }}\", \"hannah@{{ $json.domain }}\", \"megan@{{ $json.domain }}\", \"lauren@{{ $json.domain }}\" ] }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        0
+      ],
+      "id": "2b4ca22f-f292-408c-9e5a-55c6d216b6bc",
+      "name": "Set MailBox Names"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1700968550,
+          "mode": "list",
+          "cachedResultName": "cf_mailboxes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cEOhmT0FFpfvUMv2eAAGO3oGjk-ZSmbDos2LS0ZeBR4/edit#gid=1700968550"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email address",
+              "lookupValue": "={{ $json.mailbox }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        784,
+        0
+      ],
+      "id": "49708022-346b-4301-9e37-1a85a3fa1ecc",
+      "name": "Get MailBox Password",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        336,
+        0
+      ],
+      "id": "78bbff7d-4aa2-4788-9925-58e93e2c2faa",
+      "name": "Limit",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://primary-production-26ac.up.railway.app/api/v1/workflows",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "n8nApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"name\": \"WATCHER {{ $json.mailboxes[0].name.extractDomain() }}\",\n    \"nodes\": [\n        {\n            \"parameters\": {\n                \"chatId\": \"{{ $('Telegram Trigger').first().json.message.chat.id }}\",\n                \"text\": \"{{ $('Telegram Trigger').first().json.message.text }}\",\n                \"additionalFields\": {\n                    \"appendAttribution\": false\n                }\n            },\n            \"type\": \"n8n-nodes-base.telegram\",\n            \"typeVersion\": 1.2,\n            \"position\": [\n                240,\n                96\n            ],\n            \"id\": \"9f304727-0945-42dc-b6c0-9e90f2791f81\",\n            \"name\": \"Send a text message\",\n            \"webhookId\": \"4ecd7d54-a545-40f8-a9c4-1e5b9b42e19f\",\n            \"credentials\": {\n                \"telegramApi\": {\n                    \"id\": \"J7hAh8SjxHCNGGMN\",\n                    \"name\": \"ReplyForgeBot\"\n                }\n            }\n        },\n        {\n            \"parameters\": {\n                \"options\": {}\n            },\n            \"id\": \"7ecb0dca-6f9e-4518-8ed3-089ff244f897\",\n            \"name\": \"{{ $json.mailboxes[1].name }}\",\n            \"type\": \"n8n-nodes-base.emailReadImap\",\n            \"position\": [\n                -208,\n                0\n            ],\n            \"typeVersion\": 2,\n            \"credentials\": {\n                \"imap\": {\n                    \"id\": \"{{ $json.mailboxes[1].id }}\",\n                    \"name\": \"{{ $json.mailboxes[1].name }}\"\n                }\n            }\n        },\n        {\n            \"parameters\": {\n                \"options\": {}\n            },\n            \"id\": \"c7a22b96-532b-4e38-99f0-ec25f605b3b4\",\n            \"name\": \"{{ $json.mailboxes[3].name }}\",\n            \"type\": \"n8n-nodes-base.emailReadImap\",\n            \"position\": [\n                -208,\n                384\n            ],\n            \"typeVersion\": 2,\n            \"credentials\": {\n                \"imap\": {\n                    \"id\": \"{{ $json.mailboxes[3].id }}\",\n                    \"name\": \"{{ $json.mailboxes[3].name }}\"\n                }\n            }\n        },\n        {\n            \"parameters\": {\n                \"options\": {}\n            },\n            \"id\": \"b8c6db97-43ab-4b01-bc9c-ceec63db62f9\",\n            \"name\": \"{{ $json.mailboxes[2].name }}\",\n            \"type\": \"n8n-nodes-base.emailReadImap\",\n            \"position\": [\n                -208,\n                192\n            ],\n            \"typeVersion\": 2,\n            \"credentials\": {\n                \"imap\": {\n                    \"id\": \"{{ $json.mailboxes[2].id }}\",\n                    \"name\": \"{{ $json.mailboxes[2].name }}\"\n                }\n            }\n        },\n        {\n            \"parameters\": {\n                \"options\": {}\n            },\n            \"id\": \"67f0bc24-2738-4b44-9b5c-c0b4d7b0ea25\",\n            \"name\": \"{{ $json.mailboxes[0].name }}\",\n            \"type\": \"n8n-nodes-base.emailReadImap\",\n            \"position\": [\n                -208,\n                -192\n            ],\n            \"typeVersion\": 2,\n            \"credentials\": {\n                \"imap\": {\n                    \"id\": \"{{ $json.mailboxes[0].id }}\",\n                    \"name\": \"{{ $json.mailboxes[0].name }}\"\n                }\n            }\n        }\n    ],\n    \"connections\": {\n        \"{{ $json.mailboxes[1].name }}\": {\n            \"main\": [\n                [\n                    {\n                        \"node\": \"Send a text message\",\n                        \"type\": \"main\",\n                        \"index\": 0\n                    }\n                ]\n            ]\n        },\n        \"{{ $json.mailboxes[3].name }}\": {\n            \"main\": [\n                [\n                    {\n                        \"node\": \"Send a text message\",\n                        \"type\": \"main\",\n                        \"index\": 0\n                    }\n                ]\n            ]\n        },\n        \"{{ $json.mailboxes[2].name }}\": {\n            \"main\": [\n                [\n                    {\n                        \"node\": \"Send a text message\",\n                        \"type\": \"main\",\n                        \"index\": 0\n                    }\n                ]\n            ]\n        },\n        \"{{ $json.mailboxes[0].name }}\": {\n            \"main\": [\n                [\n                    {\n                        \"node\": \"Send a text message\",\n                        \"type\": \"main\",\n                        \"index\": 0\n                    }\n                ]\n            ]\n        }\n    },\n    \"settings\": {\n        \"saveExecutionProgress\": true,\n        \"saveManualExecutions\": true,\n        \"saveDataErrorExecution\": \"all\",\n        \"saveDataSuccessExecution\": \"all\",\n        \"executionTimeout\": 3600,\n        \"errorWorkflow\": \"VzqKEW0ShTXA5vPj\",\n        \"timezone\": \"America/New_York\",\n        \"executionOrder\": \"v1\"\n    }\n    \n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1008,
+        -192
+      ],
+      "id": "6dd339c9-1624-4d3c-9c16-06c7246451db",
+      "name": "Create Watcher",
+      "credentials": {
+        "n8nApi": {
+          "id": "3UZJsL3QjlMRxPys",
+          "name": "n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7da9b464-735b-47d1-939e-64c97cff315a",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "Watch",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -800,
+        64
+      ],
+      "id": "3742cc04-9249-4623-afa4-a234d23e80fb",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "7859955122",
+        "message": "Enter your new domain...",
+        "responseType": "customForm",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Domain Name",
+              "placeholder": "Enter domain name...",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -560,
+        0
+      ],
+      "id": "0ef7b892-2336-409f-b0ce-206720613451",
+      "name": "Send message and wait for response",
+      "webhookId": "12f4ffc0-2604-4d92-9312-445790d4b913",
+      "credentials": {
+        "telegramApi": {
+          "id": "J7hAh8SjxHCNGGMN",
+          "name": "ReplyForgeBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code node (JavaScript)\nreturn [\n  {\n    json: {\n      mailboxes: items.map(i => i.json)\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        -192
+      ],
+      "id": "8adedfed-2e14-4ef0-8618-b1dc359424be",
+      "name": "Code"
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over MailBox Names",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create IMAP Credential": {
+      "main": [
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over MailBox Names": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get MailBox Password",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Domain": {
+      "main": [
+        [
+          {
+            "node": "Set MailBox Names",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set MailBox Names": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get MailBox Password": {
+      "main": [
+        [
+          {
+            "node": "Create IMAP Credential",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over MailBox Names",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "Set Domain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Create Watcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:megan@godimensionsevensystems.com": {},
+    "node:melody@togetherclean.com": {},
+    "node:hannah@godimensionsevensystems.com": {},
+    "node:lauren@godimensionsevensystems.com": {},
+    "node:emily@godimensionsevensystems.com": {}
+  },
+  "meta": {
+    "templateId": "2907",
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Send message and wait for response": [
+      {
+        "json": {
+          "data": {
+            "Domain Name": "thedimensionsevensystems.com"
+          }
+        }
+      }
+    ],
+    "Telegram Trigger": [
+      {
+        "json": {
+          "update_id": 257252258,
+          "message": {
+            "message_id": 28,
+            "from": {
+              "id": 7859955122,
+              "is_bot": false,
+              "first_name": "Jose",
+              "language_code": "en"
+            },
+            "chat": {
+              "id": 7859955122,
+              "first_name": "Jose",
+              "type": "private"
+            },
+            "date": 1756336069,
+            "text": "Watch"
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "e0154e10-eec8-400e-9473-2b06f36eb148",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-08-26T20:48:36.597Z",
+      "updatedAt": "2025-08-26T20:48:36.597Z",
+      "role": "workflow:owner",
+      "workflowId": "s4jBy61QWaqHYeXk",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "createdAt": "2025-03-31T16:17:59.819Z",
+      "updatedAt": "2025-03-31T16:17:59.819Z",
+      "id": "9gJJUwQwFxg44s69",
+      "name": "TELEGRAM"
+    },
+    {
+      "createdAt": "2025-08-12T13:57:36.047Z",
+      "updatedAt": "2025-08-12T13:57:36.047Z",
+      "id": "zsBHhmvG5XoHxZ7M",
+      "name": "IMAP"
+    }
+  ]
+}

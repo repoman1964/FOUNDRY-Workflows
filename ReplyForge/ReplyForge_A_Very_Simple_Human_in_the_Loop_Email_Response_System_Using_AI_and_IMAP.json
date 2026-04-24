@@ -1,0 +1,553 @@
+{
+  "createdAt": "2025-08-12T13:57:52.833Z",
+  "updatedAt": "2025-08-31T15:10:32.157Z",
+  "id": "jSilDeDoDeaSupJ1",
+  "name": "ReplyForge - A Very Simple \"Human in the Loop\" Email Response System Using AI and IMAP",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "html": "={{ $json.textHtml }}",
+        "options": {}
+      },
+      "id": "42d150d8-d574-49f9-9c0e-71a2cdea3b79",
+      "name": "Markdown",
+      "type": "n8n-nodes-base.markdown",
+      "position": [
+        640,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "fromEmail": "=emily@dimensionseven.systems",
+        "toEmail": "=jmadarieta3@gmail.com",
+        "subject": "=Hey Hey!",
+        "emailFormat": "text",
+        "text": "sup playa?",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "e9498a60-0078-4581-b269-7ff552f4047a",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "position": [
+        2848,
+        256
+      ],
+      "webhookId": "a79ae1b4-648c-4cb4-b6cd-04ea3c1d9314",
+      "typeVersion": 2.1,
+      "credentials": {
+        "smtp": {
+          "id": "HrG1Vi9XSVIox4PI",
+          "name": "emily@dimensionseven.systems"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operationMode": "nodeInputBinary",
+        "options": {
+          "binaryDataKey": "={{ $json.data }}",
+          "summarizationMethodAndPrompts": {
+            "values": {
+              "combineMapPrompt": "=Write a concise summary of the following in max 100 words:\n\n\"{{ $json.data }}\"\n\nDo not enter the total number of words used.",
+              "prompt": "=Write a concise summary of the following in max 100 words:\n\n\"{{ $json.data }}\"\n\nDo not enter the total number of words used."
+            }
+          }
+        }
+      },
+      "id": "ab9f6ac3-2095-44df-aeba-2eab96ecf425",
+      "name": "Email Summarization Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainSummarization",
+      "position": [
+        896,
+        240
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write the text to reply to the following email:\n\n{{ $json.response.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert at answering emails. You need to answer them professionally based on the information you have. This is a business email. Be concise and never exceed 100 words. Only the body of the email, not create the subject"
+        }
+      },
+      "id": "86b7c3d0-e1f2-4e2f-b293-8042700d6816",
+      "name": "Write email",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1328,
+        240
+      ],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "5d5a397f-f9c3-4691-afd0-9a6102679eac",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1280,
+        464
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "fkd34VceBlAS0mMp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Chain that summarizes the received email",
+        "height": 240,
+        "width": 320
+      },
+      "id": "5b36a295-fda6-4174-9078-0a8ec57620d2",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        880,
+        160
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "Agent that retrieves business information from a vector database and processes the response",
+        "height": 240,
+        "width": 340
+      },
+      "id": "7110fe1f-0099-49aa-9095-96e733aa468f",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1312,
+        160
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "Convert email to Markdown format for better understanding of LLM models",
+        "height": 240
+      },
+      "id": "e2bdbd64-3c37-4867-ae2c-0f6937d82b81",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        576,
+        160
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "If the feedback is OK send email",
+        "height": 180
+      },
+      "id": "8ae5d216-5897-4c33-800a-27ff939b174a",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2288,
+        208
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "fromEmail": "info@n3witalia.com",
+        "toEmail": "jmadarieta3@gmail.com",
+        "subject": "=[Approval Required]  {{ $('melody@togetherclean.com').item.json.subject }}",
+        "message": "=<h3>MESSAGE</h3>\n{{ $('melody@togetherclean.com').item.json.textHtml }}\n\n<h3>AI RESPONSE</h3>\n{{ $json.email }}",
+        "options": {}
+      },
+      "id": "4cfce63c-5931-45c5-99ca-eb85dca962b5",
+      "name": "Approve Email",
+      "type": "n8n-nodes-base.emailSend",
+      "position": [
+        2048,
+        240
+      ],
+      "webhookId": "4f9f06e7-9b2b-4896-9b51-245972341d12",
+      "typeVersion": 2.1,
+      "credentials": {
+        "smtp": {
+          "id": "HrG1Vi9XSVIox4PI",
+          "name": "emily@dimensionseven.systems"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "gpt-3.5-turbo"
+        },
+        "options": {}
+      },
+      "id": "d6c8acd2-ebc1-4aaa-bfcc-cdb18fcc8715",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        848,
+        464
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "fkd34VceBlAS0mMp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "35d7c303-42f4-4dd1-b41e-6eb087c23c3d",
+              "name": "email",
+              "type": "string",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "33bbedeb-129a-4e99-ab5a-9e0ec4456156",
+      "name": "Set Email text",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1776,
+        240
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "content": "Human in the loop",
+        "height": 180
+      },
+      "id": "2293e0e6-4f2a-4622-a610-64b65f34e1e5",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2000,
+        208
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "62e26bc5-1732-4699-a602-99490c7406fd",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c4c9157d-4d05-47a1-a5eb-63865e838d39",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        2352,
+        240
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "d77e3e37-658e-4d50-b9aa-49b03880fa24",
+      "name": "megan@godimensionsevensystems.com",
+      "type": "n8n-nodes-base.emailReadImap",
+      "position": [
+        224,
+        256
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "imap": {
+          "id": "tWLkWrX23HrVMxqz",
+          "name": "MIGADU IMAP  megan@godimensionsevensystems.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "271bb16f-9b62-41d9-ab76-114cd7ba915a",
+      "name": "melody@togetherclean.com",
+      "type": "n8n-nodes-base.emailReadImap",
+      "position": [
+        208,
+        64
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "imap": {
+          "id": "rHnoVbxr6DmfKl7y",
+          "name": "MIGADU IMAP  melody@togetherclean.com"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Write email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        []
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Write email": {
+      "main": [
+        [
+          {
+            "node": "Set Email text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approve Email": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Email text": {
+      "main": [
+        [
+          {
+            "node": "Approve Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Summarization Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Summarization Chain": {
+      "main": [
+        [
+          {
+            "node": "Write email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "melody@togetherclean.com": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "megan@godimensionsevensystems.com": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:megan@godimensionsevensystems.com": {},
+    "node:melody@togetherclean.com": {}
+  },
+  "meta": {
+    "templateId": "2907",
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "megan@godimensionsevensystems.com": [
+      {
+        "json": {
+          "textHtml": "<div dir=\"ltr\">i knew better</div>\r\n",
+          "textPlain": "i knew better\r\n",
+          "metadata": {
+            "return-path": "<jmadarieta3@gmail.com>",
+            "delivered-to": "megan@godimensionsevensystems.com",
+            "received": "from mp2.migadu.com ([2001:41d0:303:e224::])\t(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))\tby ms15.migadu.com with LMTPS\tid cJqMJxDqrWjXQgEAe85BDQ:P1\t(envelope-from <jmadarieta3@gmail.com>)\tfor <megan@godimensionsevensystems.com>; Tue, 26 Aug 2025 19:08:32 +0200",
+            "x-envelope-to": "megan@godimensionsevensystems.com",
+            "authentication-results": "aspmx1.migadu.com;\tdkim=pass header.d=gmail.com header.s=20230601 header.b=GdGFj2Og;\tdmarc=pass (policy=none) header.from=gmail.com;\tspf=pass (aspmx1.migadu.com: domain of jmadarieta3@gmail.com designates 2607:f8b0:4864:20::82c as permitted sender) smtp.mailfrom=jmadarieta3@gmail.com",
+            "arc-message-signature": "i=1; a=rsa-sha256; c=relaxed/relaxed;\td=godimensionsevensystems.com; s=key1; t=1756228112;\th=from:from:reply-to:subject:subject:date:date:message-id:message-id:\t to:to:cc:mime-version:mime-version:content-type:content-type:\t dkim-signature; bh=RbHJPGR6KbGZ26Obkc5RMakSU7aYY8XAFP9aqR+fPrc=;\tb=ZT8+60cD7WoPbogHJDoMPftRHiksCxdEf4Fnur4dTm/REWKE2mkpBzFg76JSA+dPk1bW0h\tIK2UDRmRRsxID5wGo6lFN9jxEl6SYBGJw15/W3IwEiJndRA3U0e7tcBAzCnLio+KHwGkFa\tkUYF0VxjsqHobZAxmqmgMtXUyCrCO98RikcUsYcxV5MqMAC1JxGODHcpsjja9MuHWLklz8\tduFRWL1QjcXAr0kcD38ei+7dQopPajnJLX/T1jKh/vwEsPo2i8d65wgnIZfkxi3QelQqjr\tmH1uzgc0pJXvnFFyttHW2X75g9sibZqoGOTeqcmWOdP5a6blKVo4RiBrtDLYwg==",
+            "arc-seal": "i=1; s=key1; d=godimensionsevensystems.com; t=1756228112;\ta=rsa-sha256; cv=none;\tb=WYqC42M4OlOAk37+EOPh3M9sonDsVfot7ZEEBri0lojV+cJztXF/dISvqqfb7aWddUpgJO\ttJ/8H9AZi4CbifN6pcOXmoI7HShWdpEo6UY8821A0kXQCcsB1OYTNK/ARpmT3vc2Acoy7K\tZp18/If/EoLjRs7VOlrJnwroxdGD/ebLRjmkEVd1rxfnyeBMZjq2WjfUnJdEYZYsiiHyAH\tzo22n18DoYtPUSXQvORkLuZckBRW9HDXWNibvizh1qvZyYW3i3SzBfzECkxC3Udk9TWgsB\t4+R9DL2aJX4+C3oXku5bI9w+sV1CEJSMdIztDkdQLsvaMMvCYfTDhtcAu0ahYA==",
+            "arc-authentication-results": "i=1;\taspmx1.migadu.com;\tdkim=pass header.d=gmail.com header.s=20230601 header.b=GdGFj2Og;\tdmarc=pass (policy=none) header.from=gmail.com;\tspf=pass (aspmx1.migadu.com: domain of jmadarieta3@gmail.com designates 2607:f8b0:4864:20::82c as permitted sender) smtp.mailfrom=jmadarieta3@gmail.com",
+            "dkim-signature": "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=gmail.com; s=20230601; t=1756228041; x=1756832841; darn=godimensionsevensystems.com;        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject         :date:message-id:reply-to;        bh=RbHJPGR6KbGZ26Obkc5RMakSU7aYY8XAFP9aqR+fPrc=;        b=GdGFj2OgNu9ft9mUWe0xbcNe4pvracbEOdQHduoKoCUf4JjyNICLNQUiO0+mj+y5IV         aBbastb1zh99o02Ewe3jPRw1AIWaoggqHAOAq4LA9YcYZiWlrDB51kVqIs+ljKFwnodr         Isa0gDsHxVjFWq+1GYXdoMkC3nrihCQm9TzygQ4YgAZllR60oufKUruXFMmAui2VEohq         1+NcOYz4RlsJt3abmplFNla7DnKP6izJJDMy2ahCM/Jv4GEKsKLZ+Qd3H/sJzOIJXqZi         7fnOP+mxqI49ZUYLux3aSBpNVr+29erYQVPIh1s5hg1PRN91qYV2pMLs8/HvjsyZHTbE         OCcw==",
+            "x-google-dkim-signature": "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=1e100.net; s=20230601; t=1756228041; x=1756832841;        h=to:subject:message-id:date:from:mime-version:x-gm-message-state         :from:to:cc:subject:date:message-id:reply-to;        bh=RbHJPGR6KbGZ26Obkc5RMakSU7aYY8XAFP9aqR+fPrc=;        b=a2yTKQwuqvokny0Fd1GC0AVBbAYDIW2Bl9nDwWvNZIHw32J0S3G5WXQ+vzaxY5ViIr         tLtUNOmdTw/MEII7BOo4snQCP3+IJ7khFxQYX+bXHBU9XFBZPSpvsPZgKpQGQu+hIAFy         865X37fvq+9961+7YHLU+U45FQMLoM1vPcJknANgGiX22ZCnTDagUbRAVnUV6veYkA81         UmqWeL0Ai8Q8vAFKYaDeS1TwL6MkqnsImq9Yoo+uNOvSJGbh2Q63uor2kZgaz0No6vex         r3xHQkMgsOJsEviIhSh0PdVs7/rRawj9WcOfWNLVf/5938OguJIB+SeUfOGXTKKssdX8         ZxQQ==",
+            "x-gm-message-state": "AOJu0YywARqu+cpefqkwDJCu49elhJeJya5sjEjh8yebIkz3PcT37RD1\t1jhUUtucqqzcGFxJx74uVqPKLl7Eh7YhDu99PhSamDd3vdAhAZjkjVYpViXHCHqZihm+i5G0+7t\tdbTS2cJtqEULY3BBRmEhIbPJY8r0p2fgVUXds",
+            "x-gm-gg": "ASbGncsqKzvIU+ZU5vffFs9mjlGuOgW0DY3iNhWw5xm2DwSdTJs6zm6awmOb3698DKP\tHSIcSyBGs9jfabhboSNImp6tjWI7vjiLGmcy1Df7PPSpWGca6mkQ0JCYPzVqK3EIAX3yP54VIFN\tkpByQsBAzzBr50QBLVai7gbKpKU9RNs0Gs6MGAYGzSrrffHU1NrsStgNmDI+SEBkmQ5f2zgrKPH\tzKswusteQgsYrMF8z8enD7OReyumHhT+GlKHZt7adIYsm+KRwI7cQi97kAe5+h7b7kiEg==",
+            "x-google-smtp-source": "AGHT+IGTpCPAd0nAbF/Mi8Wfj3j52hcjV9RxBADTqHxHnyMQ/iE6vsFGn44uKj1GfRzTFnRK6/pL6SEN5ZTXoeGRRp4=",
+            "x-received": "by 2002:a05:622a:1149:b0:4b2:8e4c:71ca with SMTP id d75a77b69052e-4b2aaa196cbmr216528411cf.12.1756228041028; Tue, 26 Aug 2025 10:07:21 -0700 (PDT)",
+            "mime-version": "1.0",
+            "x-gm-features": "Ac12FXwLxn7Ya6vV2ofxDUsWvXliyqzsWogsS2ASQpEsAyaTZ_dZz6qibWkIbv8",
+            "message-id": "<CAFTVrRq-J-sNejw1_66SxHtcoFFR4njBdWtMvE2zdHAVU3PHkQ@mail.gmail.com>",
+            "content-type": "multipart/alternative; boundary=\"00000000000087b8f7063d47b4e0\"",
+            "x-migadu-flow": "FLOW_IN",
+            "x-migadu-country": "US",
+            "x-spam-score": "-6.03",
+            "x-migadu-queue-id": "6E4BF9C992",
+            "x-migadu-scanner": "mx12.migadu.com",
+            "x-migadu-spam-score": "-6.03"
+          },
+          "attributes": {
+            "uid": 5
+          },
+          "from": "Jose Madarieta <jmadarieta3@gmail.com>",
+          "date": "Tue, 26 Aug 2025 13:07:09 -0400",
+          "subject": "it was the dkim....",
+          "to": "megan@godimensionsevensystems.com"
+        }
+      }
+    ]
+  },
+  "versionId": "66de3a4f-f158-4e44-ba6d-5c56cb493d4a",
+  "triggerCount": 2,
+  "shared": [
+    {
+      "createdAt": "2025-08-12T13:57:52.833Z",
+      "updatedAt": "2025-08-12T13:57:52.833Z",
+      "role": "workflow:owner",
+      "workflowId": "jSilDeDoDeaSupJ1",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "createdAt": "2025-08-12T13:57:36.047Z",
+      "updatedAt": "2025-08-12T13:57:36.047Z",
+      "id": "zsBHhmvG5XoHxZ7M",
+      "name": "IMAP"
+    }
+  ]
+}

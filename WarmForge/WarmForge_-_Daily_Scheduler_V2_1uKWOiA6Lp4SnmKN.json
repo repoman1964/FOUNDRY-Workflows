@@ -1,0 +1,912 @@
+{
+  "createdAt": "2025-08-20T18:25:27.371Z",
+  "updatedAt": "2025-08-31T15:17:50.932Z",
+  "id": "1uKWOiA6Lp4SnmKN",
+  "name": "WarmForge - Daily Scheduler V2",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1328,
+        112
+      ],
+      "id": "04a95b82-036f-4f7a-afd7-ff05bda43e77",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "SendPoolA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1104,
+        -128
+      ],
+      "id": "d75e18b9-3d0c-4785-9637-4c278e5ce751",
+      "name": "Get Senders",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 868955174,
+          "mode": "list",
+          "cachedResultName": "WarmPoolA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8/edit#gid=868955174"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1104,
+        64
+      ],
+      "id": "309d7c35-745e-4762-930c-cb217c7d6829",
+      "name": "Get Warmers",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -560,
+        -48
+      ],
+      "id": "839b39bb-a352-4083-a36c-ca3bb5785b46",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { senders: $input.all().map(i => i.json) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        -128
+      ],
+      "id": "3d9bc4d8-78af-4a3b-b6e1-758bf8ecc324",
+      "name": "Wrap Senders"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { warmers: $input.all().map(i => i.json) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        64
+      ],
+      "id": "6bb6314c-5323-4f1e-a9fc-9e4f4a4901cb",
+      "name": "Wrap Warmers"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1-5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1328,
+        -176
+      ],
+      "id": "699ec960-4979-4f6a-bff3-140289ce5d3d",
+      "name": "M-F @ 8AM",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * WarmForge — Build daily warmup tasks with unique sender logic and randomization\n * Inputs: { senders: [...], warmers: [...] }\n */\n\n// Helpers\nfunction getInputs(items) {\n  if (items.length >= 2 && items[0].json.senders && items[1].json.warmers) {\n    return { senders: items[0].json.senders, warmers: items[1].json.warmers };\n  }\n  if (items.length === 1 && items[0].json.senders && items[0].json.warmers) {\n    return { senders: items[0].json.senders, warmers: items[0].json.warmers };\n  }\n  throw new Error('Missing senders or warmers input.');\n}\n\nfunction shuffle(array) {\n  for (let i = array.length - 1; i > 0; i--) {\n    const j = Math.floor(Math.random() * (i + 1));\n    [array[i], array[j]] = [array[j], array[i]];\n  }\n}\n\nfunction getNowET() {\n  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));\n}\n\nfunction getRandomDelayMs(minMinutes, maxMinutes) {\n  const minMs = minMinutes * 60 * 1000;\n  const maxMs = maxMinutes * 60 * 1000;\n  return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;\n}\n\nfunction isWithinETWindow(date, startHour = 9, endHour = 16) {\n  const et = new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' }));\n  const hour = et.getHours();\n  return hour >= startHour && hour < endHour;\n}\n\nfunction getNextValidETTime(anchor, minDelayMins = 0) {\n  let candidate = new Date(anchor.getTime() + minDelayMins * 60 * 1000);\n  while (!isWithinETWindow(candidate)) {\n    candidate = new Date(candidate.getTime() + 15 * 60 * 1000); // Add 15 min until within ET window\n  }\n  return candidate;\n}\n\nfunction dedupeByAddress(records, key) {\n  return Object.values(\n    records.reduce((acc, item) => {\n      acc[item[key]] = item;\n      return acc;\n    }, {})\n  );\n}\n\nfunction buildSchedule({ senders, warmers }) {\n  const output = [];\n\n  const uniqueSenders = dedupeByAddress(senders, 'sender_address');\n  const uniqueWarmers = dedupeByAddress(warmers, 'warmer_address');\n\n  const outboundCount = {};\n  const maxSends = {};\n\n  for (const s of uniqueSenders) {\n    outboundCount[s.sender_address] = 0;\n    maxSends[s.sender_address] = Number(s.max_daily_sends ?? 0);\n  }\n\n  const getThreadId = () => `t-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;\n  const getQID = () => `wf-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;\n  const now = getNowET();\n  const threadTypes = ['single', 'thread'];\n  let warmerIndex = 0;\n\n  for (const sender of uniqueSenders) {\n    const max = maxSends[sender.sender_address];\n    let count = outboundCount[sender.sender_address];\n\n    while (count < max) {\n      const warmer = uniqueWarmers[warmerIndex % uniqueWarmers.length];\n      warmerIndex++;\n\n      if (sender.sender_address === warmer.warmer_address) continue;\n\n      let replyType, threadDepth, projectedOutbounds, attempts = 0;\n\n      do {\n        replyType = threadTypes[Math.floor(Math.random() * threadTypes.length)];\n        threadDepth = replyType === 'single' ? 2 : Math.floor(Math.random() * 3) * 2 + 2; // 2,4,6\n        projectedOutbounds = Math.ceil(threadDepth / 2);\n        attempts++;\n        if (attempts > 10) break;\n      } while (count + projectedOutbounds > max);\n\n      if (count + projectedOutbounds > max) break;\n\n      const threadId = getThreadId();\n      let prevQID = null;\n      let anchor = getNextValidETTime(now, Math.floor(Math.random() * 60));\n\n      for (let i = 0; i < threadDepth; i++) {\n        const direction = i % 2 === 0 ? 'outbound' : 'inbound';\n        const qid = getQID();\n        const isOutbound = direction === 'outbound';\n\n        if (isOutbound) {\n          if (outboundCount[sender.sender_address] >= max) break;\n          outboundCount[sender.sender_address]++;\n          count++;\n        }\n\n        const msg = {\n          qid,\n          parent_qid: prevQID,\n          sid: sender.sid,\n          wid: warmer.wid,\n          thread_id: threadId,\n          thread_index: i,\n          thread_depth: threadDepth,\n          reply_type: replyType,\n          direction,\n          sender_address: sender.sender_address,\n          sender_name: sender.sender_name,\n          warmer_address: warmer.warmer_address,\n          warmer_name: warmer.warmer_name,\n          domain: sender.domain,\n          send_time: getNextValidETTime(anchor).toISOString(),\n          created_at: new Date().toISOString(),\n          schedule_window_et: '09:00–16:00',\n          tz_anchor: 'America/New_York',\n          engine: 'WarmForge',\n          status: 'queued',\n        };\n\n        output.push({ json: msg });\n        anchor = new Date(new Date(msg.send_time).getTime() + getRandomDelayMs(30, 180));\n        prevQID = qid;\n      }\n    }\n  }\n\n  return output;\n}\n\n// ENTRY\nconst { senders, warmers } = getInputs(items);\nshuffle(senders);\nshuffle(warmers);\nreturn buildSchedule({ senders, warmers });\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -208
+      ],
+      "id": "b9dc9e1d-4034-489e-b4bb-0f9e6e79b498",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        576,
+        -48
+      ],
+      "id": "9cee0b32-727d-4758-8f28-9f653e6c805e",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [
+        1984,
+        224
+      ],
+      "id": "c95ccd86-6e94-4f7e-a449-a11d3ce44b47"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        256
+      ],
+      "id": "d3f63432-3e33-4cea-af24-377354edb352",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "fkd34VceBlAS0mMp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        368,
+        -48
+      ],
+      "id": "3143dcde-b56a-4e79-8748-a3a409a7a8b3",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Seed (do not copy):\nSubject: Signed up ≠ Showed up\n\nNo-shows aren’t “just part of doing business.” They’re a leak. \n\nIt’s the gap between “Booked” and “Showed Up” that’s killing your funnel. \n\nWe built DropStop to stop that leak cold \nNo new platforms. No learning curve. \n\nDropStop is the only thing standing between you and a calendar full of no-shows.\n\nReply “Drop Zone” and I’ll send over the 90-second breakdown. \n\n– Jose\n\nContext:\n\nSender name: {{ $json.sender_name.toSentenceCase() }} \nFrom: {{ $json.sender_address }}\nTo: {{ $json.warmer_address || $json.warmer_adress }}\nReply mode: initial_outreach\nVariation seed (do not output): {{ $json.qid }}\n\nOutput JSON only: \n\n{\n\"subject\": \"sample subject line\",\n\"body\": sample body text\"\n}\n",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You generate production-style cold outreach for DropStop. Constraints: plain text only, no links, no HTML, no images, no tracking. Tone: direct, human, Spartan. Length: 60–110 words. Subject ≤ 65 chars. Keep theme: fixing the Booked→Showed Up leak (no-shows). One soft reply CTA only (e.g., Reply \\\"Drop Zone\\\" for the 90-sec breakdown). 1–3 short paragraphs. No emojis. Avoid copying the seed verbatim."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        832,
+        -112
+      ],
+      "id": "a17141fb-a467-4060-8e15-08b990d3dfbb",
+      "name": "Build Initial Outbound Message"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "\n{\n\"subject\": \"sample subject line\",\n\"body\": \"sample body text\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        256
+      ],
+      "id": "be764d4a-dabf-4812-b403-3e813bbad890",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 912173888,
+          "mode": "list",
+          "cachedResultName": "MessageQueue",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8/edit#gid=912173888"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "sid": "={{ $('Loop Over Items').item.json.sid }}",
+            "wid": "={{ $('Loop Over Items').item.json.wid }}",
+            "send_time": "={{ $('Loop Over Items').item.json.send_time }}",
+            "reply_type": "={{ $('Loop Over Items').item.json.reply_type }}",
+            "thread_depth": "={{ $('Loop Over Items').item.json.thread_depth }}",
+            "engine": "={{ $('Loop Over Items').item.json.engine }}",
+            "tz_anchor": "={{ $('Loop Over Items').item.json.tz_anchor }}",
+            "schedule_window_et": "={{ $('Loop Over Items').item.json.schedule_window_et }}",
+            "created_at": "={{ $('Loop Over Items').item.json.created_at }}",
+            "qid": "={{ $('Loop Over Items').item.json.qid }}",
+            "status": "queued",
+            "sender_name": "={{ $('Loop Over Items').item.json.sender_name.toTitleCase() }}",
+            "sender_address": "={{ $('Loop Over Items').item.json.sender_address }}",
+            "warmer_name": "={{ $('Loop Over Items').item.json.warmer_name.toTitleCase() }}",
+            "warmer_address": "={{ $('Loop Over Items').item.json.warmer_address }}",
+            "subject": "={{ $json.output.subject }}",
+            "body": "={{ $json.output.body }}",
+            "direction": "={{ $('Loop Over Items').item.json.direction }}",
+            "thread_id": "={{ $('Loop Over Items').item.json.thread_id }}",
+            "thread_index": "={{ $('Loop Over Items').item.json.thread_index }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "qid",
+              "displayName": "qid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sid",
+              "displayName": "sid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sender_address",
+              "displayName": "sender_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sender_name",
+              "displayName": "sender_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "wid",
+              "displayName": "wid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "warmer_address",
+              "displayName": "warmer_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "warmer_name",
+              "displayName": "warmer_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "send_time",
+              "displayName": "send_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply_type",
+              "displayName": "reply_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "in_reply_to_message_id",
+              "displayName": "in_reply_to_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "references",
+              "displayName": "references",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "parent_qid",
+              "displayName": "parent_qid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "direction",
+              "displayName": "direction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "thread_depth",
+              "displayName": "thread_depth",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "thread_id",
+              "displayName": "thread_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "thread_index",
+              "displayName": "thread_index",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "attempts",
+              "displayName": "attempts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "last_error",
+              "displayName": "last_error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "schedule_window_et",
+              "displayName": "schedule_window_et",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tz_anchor",
+              "displayName": "tz_anchor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "engine",
+              "displayName": "engine",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "provider_message_id",
+              "displayName": "provider_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sent_at",
+              "displayName": "sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1248,
+        -128
+      ],
+      "id": "0fcaf2bb-e3bf-46b9-ab35-153886f50903",
+      "name": "Add Row To MessageQueue",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1616,
+        -96
+      ],
+      "id": "964d4451-a9ed-45ca-9476-11edc1b64e50",
+      "name": "Wait",
+      "webhookId": "c26aefa5-0b41-48e5-aacc-18b69ca2ba57"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\nconst senders = input.senders;\nconst warmers = input.warmers;\n\nfunction shuffleArray(arr) {\n  return arr\n    .map(value => ({ value, sort: Math.random() }))\n    .sort((a, b) => a.sort - b.sort)\n    .map(({ value }) => value);\n}\n\nconst outboundCount = {};\nconst maxSends = {};\n\nfor (const sender of senders) {\n  outboundCount[sender.sender_address] = 0;\n  maxSends[sender.sender_address] = Number(sender.max_daily_sends ?? 0);\n}\n\nconst output = [];\n\nfor (const sender of senders) {\n  const senderEmail = sender.sender_address;\n  const max = maxSends[senderEmail];\n\n  // Shuffle warmers for each sender to ensure randomization\n  const shuffledWarmers = shuffleArray([...warmers]);\n\n  for (const warmer of shuffledWarmers) {\n    if (sender.sender_address === warmer.warmer_address) continue;\n\n    if (outboundCount[senderEmail] < max) {\n      output.push({\n        json: {\n          sender,\n          warmer\n        }\n      });\n\n      outboundCount[senderEmail]++;\n    }\n\n    if (outboundCount[senderEmail] >= max) break; // stop pairing for this sender\n  }\n}\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        -64
+      ],
+      "id": "53d77542-1483-46e7-a8d0-1f0ae11e80b4",
+      "name": "PairAndFilter"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Inputs: [{ sender, warmer }, ...]\n// Builds outbound/inbound message threads respecting max_daily_sends per sender\n\n// Time helpers\nfunction getNowET() {\n  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));\n}\n\nfunction getRandomDelayMs(minMinutes, maxMinutes) {\n  const minMs = minMinutes * 60 * 1000;\n  const maxMs = maxMinutes * 60 * 1000;\n  return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;\n}\n\nfunction isWithinETWindow(date, startHour = 9, endHour = 16) {\n  const et = new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' }));\n  const hour = et.getHours();\n  return hour >= startHour && hour < endHour;\n}\n\nfunction getNextValidETTime(anchor, minDelayMins = 0) {\n  let candidate = new Date(anchor.getTime() + minDelayMins * 60 * 1000);\n  while (!isWithinETWindow(candidate)) {\n    candidate = new Date(candidate.getTime() + 15 * 60 * 1000);\n  }\n  return candidate;\n}\n\n// Message generator\nfunction getQID() {\n  return `wf-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;\n}\n\nfunction getThreadId() {\n  return `t-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;\n}\n\n// Main build function\nfunction buildThreads(pairs) {\n  const output = [];\n  const now = getNowET();\n\n  // Track how many outbounds each sender has used\n  const outboundCount = {};\n  const maxSends = {};\n\n  for (const pair of pairs) {\n    const sender = pair.sender;\n    outboundCount[sender.sender_address] = 0;\n    maxSends[sender.sender_address] = Number(sender.max_daily_sends ?? 0);\n  }\n\n  const threadTypes = ['single', 'thread'];\n\n  for (const pair of pairs) {\n    const { sender, warmer } = pair;\n    const senderEmail = sender.sender_address;\n    const maxAllowed = maxSends[senderEmail];\n    let used = outboundCount[senderEmail];\n\n    // Determine reply_type and threadDepth\n    let replyType, threadDepth, projectedOutbounds;\n    let attempts = 0;\n\n    do {\n      replyType = threadTypes[Math.floor(Math.random() * threadTypes.length)];\n      threadDepth = replyType === 'single' ? 2 : Math.floor(Math.random() * 2) * 2 + 4; // 4 or 6\n      projectedOutbounds = Math.ceil(threadDepth / 2);\n      attempts++;\n      if (attempts > 10) break;\n    } while (used + projectedOutbounds > maxAllowed);\n\n    if (used + projectedOutbounds > maxAllowed) continue;\n\n    // Build the thread\n    const threadId = getThreadId();\n    let prevQID = null;\n    let anchor = getNextValidETTime(now, Math.floor(Math.random() * 60));\n\n    for (let i = 0; i < threadDepth; i++) {\n      const direction = i % 2 === 0 ? 'outbound' : 'inbound';\n      const isOutbound = direction === 'outbound';\n\n      if (isOutbound && outboundCount[senderEmail] >= maxAllowed) break;\n\n      const qid = getQID();\n\n      const message = {\n        qid,\n        parent_qid: prevQID,\n        sid: sender.sid,\n        wid: warmer.wid,\n        thread_id: threadId,\n        thread_index: i,\n        thread_depth: threadDepth,\n        reply_type: replyType,\n        direction,\n        sender_address: sender.sender_address,\n        sender_name: sender.sender_name,\n        warmer_address: warmer.warmer_address,\n        warmer_name: warmer.warmer_name,\n        domain: sender.domain,\n        send_time: getNextValidETTime(anchor).toISOString(),\n        created_at: new Date().toISOString(),\n        schedule_window_et: '09:00–16:00',\n        tz_anchor: 'America/New_York',\n        engine: 'WarmForge',\n        status: 'queued'\n      };\n\n      output.push({ json: message });\n\n      if (isOutbound) {\n        outboundCount[senderEmail]++;\n      }\n\n      anchor = new Date(new Date(message.send_time).getTime() + getRandomDelayMs(30, 180));\n      prevQID = qid;\n    }\n  }\n\n  return output;\n}\n\n// Run it\nreturn buildThreads(items.map(i => i.json));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -64
+      ],
+      "id": "0added12-e102-4773-88bc-1b4d92fe5691",
+      "name": "Thread Builder"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get Senders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Warmers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Senders": {
+      "main": [
+        [
+          {
+            "node": "Wrap Senders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Warmers": {
+      "main": [
+        [
+          {
+            "node": "Wrap Warmers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wrap Senders": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wrap Warmers": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "PairAndFilter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M-F @ 8AM": {
+      "main": [
+        [
+          {
+            "node": "Get Senders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Warmers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Build Initial Outbound Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Build Initial Outbound Message",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Initial Outbound Message": {
+      "main": [
+        [
+          {
+            "node": "Add Row To MessageQueue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Build Initial Outbound Message",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Row To MessageQueue": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PairAndFilter": {
+      "main": [
+        [
+          {
+            "node": "Thread Builder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Build Initial Outbound Message": [
+      {
+        "json": {
+          "output": {
+            "subject": "Stop Losing Booked Appointments",
+            "body": "No-shows are a serious issue. They create a gap between what you book and what you actually fill. This leak can drain your resources and hurt your bottom line.\n\nDropStop is designed to seal that gap without adding complexity. It’s a straightforward solution to help you convert more appointments.\n\nReply \"Drop Zone\" for a quick 90-second overview."
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "41a31409-9202-441e-a74c-e98c0d3a2e61",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-20T18:25:27.371Z",
+      "updatedAt": "2025-08-20T18:25:27.371Z",
+      "role": "workflow:owner",
+      "workflowId": "1uKWOiA6Lp4SnmKN",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

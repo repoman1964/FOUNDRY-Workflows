@@ -1,0 +1,59 @@
+🏭 The Foundry – Outbound Infrastructure
+
+A modular, API-first system for provisioning, testing, warming, sending, replying, prospecting, and monitoring. Each Forge is a specialized tool; together they form a closed-loop outbound machine with no SaaS tax, no hidden throttles, and no ESP red flags.
+
+🛠️ ConfigForge — Provisioning & Setup
+Automates new domain onboarding
+Creates mailboxes (Emily, Hannah, Megan, Lauren, etc.)
+Configures DNS (SPF, DKIM, DMARC, MX, tracking, TNS, etc.)
+Registers domains with ESPs (SparkPost) + mailbox provider (Migadu)
+Ensures compliance & warm-up readiness
+
+🧪 TestForge — Preflight & QA Lab
+Spam filter testing (SpamAssassin, Gmail/Outlook classifiers)
+Email rendering previews (Gmail, Outlook, Apple Mail, desktop/mobile)
+A/B testing harness for subject lines, CTAs, personalization
+Technical validation (DKIM/SPF/DMARC alignment, tracking links)
+Sandbox sends to seed lists before live campaigns
+Acts as a quality gate before campaigns enter WarmForge/SendForge
+
+🔥 WarmForge — Reputation Builder
+Private warm-up pool under your control
+Realistic automated reply threads
+Domain/IP health monitoring before outreach
+
+⚡ SendForge — Cold Outreach Engine
+Fine-grained throttling (X emails every Y minutes)
+Rotate across domains, mailboxes, and ESPs
+ESP-aware sending rules (skip Outlook, throttle Gmail, delay Yahoo)
+Unified inbox (“Unibox”) for replies
+
+💬 ReplyForge — Conversation Manager
+Centralized inbox for all replies
+Auto-classify responses (positive, referral, unsubscribe, OOO, etc.)
+AI-draft replies + smart autoresponders (Calendly links, polite deferrals)
+CRM + Slack/Telegram integration for hot-lead alerts
+
+📋 ListForge — Prospecting Hub
+Scrape leads (LinkedIn, Crunchbase, Reddit, niche directories)
+Enrich with verified emails and firmographics
+Push directly into SendForge queue
+GPT-powered personalization snippets (icebreakers, first lines)
+
+📊 TrackForge — Deliverability Radar
+Inbox placement testing (seed accounts across Gmail, Outlook, Yahoo)
+SPF/DKIM/DMARC + blacklist monitoring
+ESP health scoring → auto-pause or reroute sends
+Cross-suite analytics dashboard
+
+🔁 The Foundry Flywheel
+
+ConfigForge provisions new domains + mailboxes.
+TestForge validates technical + creative setup.
+WarmForge builds domain/mailbox reputation.
+ListForge fuels the system with enriched prospects.
+SendForge executes cold outreach with precision.
+ReplyForge manages and automates inbound replies.
+TrackForge monitors deliverability and performance.
+
+Together, the seven forges form a complete outbound control stack — from setup → validation → warm-up → sending → replies → analytics — all under your ownership and control.

@@ -1,0 +1,30 @@
+✅ Forge Suite To-Do
+1. ReplyForge – Engagement & Response Automation
+
+ Centralize all replies into Unibox
+
+ Auto-classify replies (positive, negative, referral, unsubscribe)
+
+ Trigger workflows (CRM sync, Slack/Telegram alerts, AI reply draft)
+
+ Build smart autoresponder templates (Calendly links, polite deferrals, etc.)
+
+2. ListForge – Prospecting & Enrichment
+
+ Lead scraping from LinkedIn, Crunchbase, Reddit, niche sites
+
+ Email + company enrichment (via APIs or scraping)
+
+ Push verified leads into SendForge queue
+
+ GPT-powered personalization snippets (first lines, icebreakers, etc.)
+
+3. TrackForge – Analytics & Deliverability Intelligence
+
+ Inbox placement testing (seed accounts across Gmail, Outlook, Yahoo)
+
+ Domain reputation monitor (SPF, DKIM, DMARC, blacklist checks)
+
+ ESP health scoring (e.g. Outlook deliverability = bad → auto-pause sends)
+
+ Cross-suite analytics dashboard (WarmForge + SendForge combined stats)

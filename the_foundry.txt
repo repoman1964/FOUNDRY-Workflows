@@ -1,0 +1,68 @@
+🏭 The Foundry
+
+Outbound infrastructure, built for operators
+
+The Foundry is where every piece of your outbound machine is crafted and controlled. Each tool is modular, API-first, and built to scale — together they form a closed loop for prospecting, warming, sending, and replying.
+
+🔧 Tools Inside The Foundry
+🔥 WarmForge — Reputation Builder
+
+Private warm-up network
+
+Realistic reply threads
+
+Domain/IP health monitoring
+
+⚡ SendForge — Outreach Engine
+
+Granular throttling (X emails / Y minutes)
+
+Domain & mailbox rotation
+
+ESP-aware sending rules
+
+Unified reply inbox
+
+💬 ReplyForge — Conversation Manager
+
+Centralized inbox for all replies
+
+Auto-classify responses (positive, referral, unsubscribe)
+
+AI-powered draft replies & smart autoresponders
+
+CRM and Slack integrations
+
+📋 ListForge — Prospecting Hub
+
+Scrape leads from LinkedIn, Crunchbase, Reddit, and niche sites
+
+Email + company enrichment
+
+Push directly into SendForge queue
+
+GPT-driven personalization snippets
+
+📊 TrackForge — Deliverability Radar
+
+Inbox placement testing across Gmail, Outlook, Yahoo
+
+SPF/DKIM/DMARC + blacklist monitoring
+
+ESP health scoring with auto-routing
+
+Foundry-wide analytics dashboard
+
+🔁 Foundry Flywheel
+
+ListForge fuels the system with prospects
+
+WarmForge builds reputation before outreach
+
+SendForge executes outbound with precision
+
+ReplyForge manages and automates conversations
+
+TrackForge monitors health and optimizes deliverability
+
+Together, The Foundry gives you end-to-end control of outbound — no hidden throttles, no artificial limits, no SaaS tax.

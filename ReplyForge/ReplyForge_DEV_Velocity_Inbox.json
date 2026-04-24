@@ -1,0 +1,3026 @@
+{
+  "createdAt": "2025-05-17T06:21:01.826Z",
+  "updatedAt": "2025-08-31T15:16:39.777Z",
+  "id": "zoOizAS01zmPIqyf",
+  "name": "ReplyForge - DEV Velocity Inbox",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Loop through each incoming item\nfor (let item of items) {\n  const from = item.json.From;\n  if (typeof from === 'string') {\n    // If it’s in the form \"Name <email@domain.com>\", extract the part inside <>\n    const match = from.match(/<([^>]+)>/);\n    // If regex matched, use the captured email; otherwise leave it as-is\n    item.json.From = match ? match[1] : from;\n  }\n}\n\n// Return the modified items back to the workflow\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -7456,
+        1488
+      ],
+      "id": "3d4b7a54-27b8-479c-93b8-3e566ebb2ea9",
+      "name": "Fix 'From'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "77968881-2fcf-415a-944d-0968a36a7834",
+              "leftValue": "={{ $json.From }}",
+              "rightValue": "annsinclair31@gmail.com",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -7280,
+        1488
+      ],
+      "id": "951b5430-d81e-47e6-b1a0-25297573abb3",
+      "name": "Filter Inbound"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "get",
+        "threadId": "={{ $json.threadId }}",
+        "simple": false,
+        "options": {
+          "returnOnlyMessages": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -6896,
+        1312
+      ],
+      "id": "aeea85ac-2d74-4e34-8365-6af24c12430b",
+      "name": "Get Full Thread",
+      "webhookId": "df84ae4a-1e38-4b33-a429-14f0af527f29",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1kWBToFNQFaDktHu",
+          "name": "annsinclair31@gmail.com"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const REP_ADDRESSES = [\n  'annsinclair31@gmail.com'\n].map(a => a.toLowerCase());\n\nfunction decodeBody(payload) {\n  // Try text/plain first\n  const textPart = payload.parts?.find(p => p.mimeType === 'text/plain' && p.body?.data);\n  if (textPart) return b64(textPart.body.data);\n\n  // Fallback to text/html\n  const htmlPart = payload.parts?.find(p => p.mimeType === 'text/html' && p.body?.data);\n  if (htmlPart) return b64(htmlPart.body.data);\n\n  return '';\n}\n\nfunction b64(str) {\n  const normalized = str.replace(/-/g, '+').replace(/_/g, '/');\n  return Buffer.from(normalized, 'base64').toString('utf8');\n}\n\nfunction whoIsSender(fromHeader) {\n  const match = fromHeader.match(/<([^>]+)>/);\n  const email = (match ? match[1] : fromHeader).trim().toLowerCase();\n  return REP_ADDRESSES.includes(email) ? 'rep' : 'customer';\n}\n\nfunction formatDateTime(internalDate) {\n  const date = new Date(Number(internalDate));\n  return new Intl.DateTimeFormat('en-AU', {\n    timeZone: 'Australia/Sydney',\n    year: 'numeric',\n    month: '2-digit',\n    day: '2-digit',\n    hour: '2-digit',\n    minute: '2-digit',\n    second: '2-digit',\n    hour12: false,\n  }).format(date)\n    .replace(',', '')\n    .replace(/(\\d{2})\\/(\\d{2})\\/(\\d{4})/, '$3-$2-$1')\n    .replace(' ', 'T') + '+10:00';\n}\n\nconst rawItems = $input.all();\nconst threads = new Map();\nconst orderedThreads = [];\n\nfor (const { json } of rawItems) {\n  const threadId = json.threadId;\n  if (!threads.has(threadId)) {\n    const newThread = { threadId, emails: [] };\n    threads.set(threadId, newThread);\n    orderedThreads.push(newThread);\n  }\n\n  const emailObj = {\n    dateTime: formatDateTime(json.internalDate),\n    from: whoIsSender(json.From ?? json.from ?? ''),\n    message: decodeBody(json.payload),\n  };\n\n  threads.get(threadId).emails.push(emailObj);\n}\n\nreturn orderedThreads.map(t => ({ json: t }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6656,
+        1392
+      ],
+      "id": "06d0fb33-6e90-4332-97cb-a9de61d591db",
+      "name": "Reformat Thread"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json.message.content }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5744,
+        1248
+      ],
+      "id": "a8396859-5522-485e-bfc0-71e652dd9d9e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You work at Dimension Seven Systems. You're responsible for categorising inbound emails as sales emails or not. \n\nTo do this you must read through the thread of that email (previous emails) and identify whether the email is considered a sales email or not. \n\nSales emails are emails that should be handled by the sales department of Dimension Seven Systems. They will be from potential customers regarding Dimension Seven Systems's services. \n\nDimension Seven Systems runs cold email campaigns, so these emails may be replies to the cold emails sent by the sales team. \n\nYour output must follow this format: \n\n{\n\"decision\": \"Sales OR Not Sales\"\n}\n\nIf the email is not a sales email, then you the value of the decision parameter must be 'Not Sales'. If it is a sales email, then it should be 'Sales'.\n\nDon't output anything else. \n\nDon't wrap the outout in ```json```. \n\nWe just received a new email. \n\nHere's the entire thread of the email in JSON String formatting. \n\n{{ $json.emails.toJsonString() }}\n\nThe newest email is the one just received, which would be closest to right now - {{ $now.toISO() }}\n\n(keep in mind each email has the previous email below it)\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -6080,
+        1248
+      ],
+      "id": "e6482106-03bf-43d8-8ec0-8010ed6afee6",
+      "name": "Sales Email? ",
+      "credentials": {
+        "openAiApi": {
+          "id": "fkd34VceBlAS0mMp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        -5456,
+        1472
+      ],
+      "id": "4bc26724-286e-48ed-bf1e-3053c41a3837",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7e33598c-17cb-497a-88f5-9cd3583211f7",
+              "name": "emailAddress",
+              "value": "={{ $json.From }}",
+              "type": "string"
+            },
+            {
+              "id": "3ee95587-c503-42bf-8625-ce60b28569d7",
+              "name": "threadIdToMatch",
+              "value": "={{ $json.threadId }}",
+              "type": "string"
+            },
+            {
+              "id": "3c21c0cc-06d4-41b0-86c2-fee9032fdc12",
+              "name": "messageId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -6880,
+        1584
+      ],
+      "id": "e66a21d9-03bd-4f05-babb-7cbdc4eb26b7",
+      "name": "Extract Email Address"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "threadId",
+              "field2": "threadIdToMatch"
+            }
+          ]
+        },
+        "options": {
+          "multipleMatches": "all"
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        -6400,
+        1440
+      ],
+      "id": "6fad8f10-1449-473b-8eba-05e187e09be0",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "kiaghasem.dev@gmail.com",
+          "mode": "list",
+          "cachedResultName": "kiaghasem.dev@gmail.com"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', `the day before the date the user requested`, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', `the day after the date the user requested`, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -2256,
+        784
+      ],
+      "id": "5c99c940-50ea-4ce3-a7ee-e1c163dfadbc",
+      "name": "get_events",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "qD7scp5aUpjYRLCu",
+          "name": "annsinclair31@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "kiaghasem.dev@gmail.com",
+          "mode": "list",
+          "cachedResultName": "kiaghasem.dev@gmail.com"
+        },
+        "start": "={{ $('Edit Fields1').item.json.startTime }}",
+        "end": "={{ $('Edit Fields1').item.json.endTime }}",
+        "additionalFields": {
+          "attendees": [
+            "kiaghasem.dev@gmail.com",
+            "={{ $('Loop Over Items3').item.json.emailAddress }}"
+          ],
+          "summary": "={{ $('Edit Fields1').item.json.eventName }} - Kamexa"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        128
+      ],
+      "id": "9e67e904-16ca-4b37-a8aa-503e84931945",
+      "name": "Google Calendar"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Loop Over Items3').item.json.threadId }}",
+        "messageId": "={{ $('Loop Over Items3').item.json.messageId }}",
+        "message": "={{ $('Edit Fields1').item.json.emailBody }}",
+        "options": {
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        624,
+        128
+      ],
+      "id": "0bb98b2b-841e-4c74-9056-27df18ce9434",
+      "name": "Gmail",
+      "webhookId": "7f87488e-d26a-4642-a882-4957233ba96c"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f83ea007-efce-4f53-adaa-e4f7d7f00d1e",
+              "leftValue": "={{ $json.bookCall }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1248,
+        1008
+      ],
+      "id": "bf5aaa1c-3334-4983-ad8e-5202df43fd2a",
+      "name": "Booking a Call?"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Loop Over Items3').item.json.threadId }}",
+        "messageId": "={{ $('Loop Over Items3').item.json.messageId }}",
+        "message": "={{ $('Edit Fields1').item.json.emailBody }}",
+        "options": {
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        1008
+      ],
+      "id": "24958ea9-0390-47b9-ba2e-56a5cb084fe8",
+      "name": "Send Availability",
+      "webhookId": "c8b5946f-fcc3-4968-a843-5648579dfbd2"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"emailBody\": {\n      \"type\": \"string\",\n      \"description\": \"The body content of the email to be sent\"\n    },\n    \"eventName\": {\n      \"type\": \"string\",\n      \"description\": \"The name of the event. (if just sending availabilities, you can leave this empty)\"\n    },\n    \"startTime\": {\n      \"type\": \"string\",\n      \"description\": \"The start time of the event, in ISO 8601 format.(if just sending availabilities, you can leave this empty)\"\n    },\n    \"endTime\": {\n      \"type\": \"string\",\n      \"description\": \"The end time of the event, in ISO 8601 format. (if just sending availabilities, you can leave this empty)\"\n    },\n    \"bookCall\": {\n      \"type\": \"boolean\",\n      \"description\": \"True if booking a call for a specific time slot.False if sending availabilities\"\n  },\n  \"calendarAvailabilities\": {\n      \"type\": \"string\",\n      \"description\": \"Detailed calendar availabilities for time as specified by manager.\"\n    }\n  },\n  \"required\": [\n    \"emailBody\",\n    \"eventName\",\n    \"startTime\",\n    \"endTime\",\n    \"bookCall\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -2016,
+        672
+      ],
+      "id": "3f1fa3e9-810b-4355-b1bb-a464717c4113",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3b47abb9-ede2-4931-8cd7-e0e4a5bf9dc3",
+              "name": "emailBody",
+              "value": "={{ $json.output.emailBody }}",
+              "type": "string"
+            },
+            {
+              "id": "5196169f-1b2c-4e7e-b5ad-427e777d8ea6",
+              "name": "eventName",
+              "value": "={{ $json.output.eventName }}",
+              "type": "string"
+            },
+            {
+              "id": "d8c5889b-f4e8-40fe-becd-60b35c16f607",
+              "name": "startTime",
+              "value": "={{ $json.output.startTime }}",
+              "type": "string"
+            },
+            {
+              "id": "51e771c2-24d2-4432-bac0-85fe0097096a",
+              "name": "endTime",
+              "value": "={{ $json.output.endTime }}",
+              "type": "string"
+            },
+            {
+              "id": "c6dd2193-21d6-42bc-8935-96c5f2091428",
+              "name": "bookCall",
+              "value": "={{ $json.output.bookCall }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1504,
+        1008
+      ],
+      "id": "f235ac2e-0555-4a59-8cb2-48ccdcda97c2",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "openai/gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "openai/gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        992
+      ],
+      "id": "205be1cd-7f53-47fb-9813-a6c7d35847fb",
+      "name": "OpenAI Chat Model2"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Loop Over Items3').item.json.messageId }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -2400,
+        752
+      ],
+      "id": "9bb1043e-1d26-4ea6-b555-d0d089322284",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        960,
+        1440
+      ],
+      "id": "070ca613-e596-4059-9642-73e20a3ee7c0",
+      "name": "Revision Agent (Email)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8ec98281-5ff1-431a-9769-5fbc6735289f",
+              "name": "outcome",
+              "value": "=Email sent with availabilities.",
+              "type": "string"
+            },
+            {
+              "id": "446009d6-b22b-40e7-8003-48d0bebaa326",
+              "name": "emailSent",
+              "value": "={{ $('Edit Fields1').item.json.emailBody }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        1008
+      ],
+      "id": "73da620a-8557-4b5f-a320-b9c6cae7e6a9",
+      "name": "Feedback Message3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a helpful assistant"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -2400,
+        464
+      ],
+      "id": "d9bddd65-5981-4b61-b80e-bd97fb1b08a7",
+      "name": "Calendar Agent"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"emailBody\": {\n      \"type\": \"string\",\n      \"description\": \"The body content of the email to be sent\"\n    },\n    \"eventName\": {\n      \"type\": \"string\",\n      \"description\": \"The name of the event. (if just sending availabilities, you can leave this empty)\"\n    },\n    \"startTime\": {\n      \"type\": \"string\",\n      \"description\": \"The start time of the event, in ISO 8601 format.(if just sending availabilities, you can leave this empty)\"\n    },\n    \"endTime\": {\n      \"type\": \"string\",\n      \"description\": \"The end time of the event, in ISO 8601 format. (if just sending availabilities, you can leave this empty)\"\n    },\n    \"bookCall\": {\n      \"type\": \"boolean\",\n      \"description\": \"True if booking a call for a specific time slot. False if sending availabilities\"\n  },\n  \"calendarAvailabilities\": {\n      \"type\": \"string\",\n      \"description\": \"Detailed calendar availabilities for time as specified by manager.\"\n    }\n  },\n  \"required\": [\n    \"emailBody\",\n    \"eventName\",\n    \"startTime\",\n    \"endTime\",\n    \"bookCall\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        960
+      ],
+      "id": "d711a588-a0eb-439e-bd62-ec0aea97765b",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        912,
+        544
+      ],
+      "id": "8cfec839-41cc-4c86-a6ef-221b5bdd97b7",
+      "name": "Revision Agent (Email)1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8ec98281-5ff1-431a-9769-5fbc6735289f",
+              "name": "outcome",
+              "value": "=Call booked for {{ $('Edit Fields1').item.json.startTime }}.",
+              "type": "string"
+            },
+            {
+              "id": "446009d6-b22b-40e7-8003-48d0bebaa326",
+              "name": "emailSent",
+              "value": "=Confirmation email sent: {{ $('Edit Fields1').item.json.emailBody }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        864,
+        128
+      ],
+      "id": "bb4ba4fc-bb08-4ae4-a326-4832acb189af",
+      "name": "Feedback Message4"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -2544,
+        688
+      ],
+      "id": "24814338-9623-4a28-905e-2301f6ab33b8",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "fkd34VceBlAS0mMp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -2144,
+        3120
+      ],
+      "id": "abd8b4ce-874a-47aa-81ef-09a20e5d541c",
+      "name": "Email Agent"
+    },
+    {
+      "parameters": {
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.1,
+      "position": [
+        -2144,
+        3760
+      ],
+      "id": "b6bec32a-30ae-4701-a635-61b27229bfd9",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "HKOEfZzZ53BcadA1",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -2160,
+        3984
+      ],
+      "id": "5f71cc79-8c69-4def-abc6-e29b3b6e42eb",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "fkd34VceBlAS0mMp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "kamexa_information",
+        "description": "Information about Kamexa that you can use to answer sales queries. ",
+        "topK": 5
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        -1984,
+        3520
+      ],
+      "id": "847d33a8-5780-4f51-b8dd-ab1f07716160",
+      "name": "kamexa_information"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        464,
+        3360
+      ],
+      "id": "e452f62d-0f58-46e1-ba4a-58f58eb98a8a",
+      "name": "Revision Agent (Email)2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8ec98281-5ff1-431a-9769-5fbc6735289f",
+              "name": "outcome",
+              "value": "=Email reply sent.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        2800
+      ],
+      "id": "07648a0a-6d94-4a30-90d4-9be88f116ed4",
+      "name": "Completed Message"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8ec98281-5ff1-431a-9769-5fbc6735289f",
+              "name": "outcome",
+              "value": "=Escalated to human agent!",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        2144
+      ],
+      "id": "a8d890d3-ee61-45eb-beda-e374e1e8bee3",
+      "name": "Completed Message1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "openai/gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "openai/gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -2256,
+        3328
+      ],
+      "id": "4b170152-3cda-4119-aea8-a67c3c3d7a8a",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "fkd34VceBlAS0mMp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"emailBody\": {\n      \"type\": \"string\",\n      \"description\": \"The body content of the email reply to be sent to the prospect. (if escalate is true then this is unecessary)\"\n    },\n      \"reason\": {\n      \"type\": \"string\",\n      \"description\": \"Reasoning for your response.\"\n    },\n    \"escalate\": {\n      \"type\": \"boolean\",\n      \"description\": \"True if you are unsure and need to escalate to your manager. False if you have enough information and are sure of your answer.\"\n  },\n    \"kamexaInformation\": {\n      \"type\": \"string\",\n      \"description\": \"Summary of information you found from querying the kamexa_informatin database.\"\n  }\n  },\n  \"required\": [\n    \"emailBody\",\n    \"reason\",\n    \"escalate\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -1568,
+        3648
+      ],
+      "id": "eae05008-5b89-479e-b78e-087430fde8d9",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "openai/gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "openai/gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1760,
+        3728
+      ],
+      "id": "eab47210-5f12-4292-bf48-f3ef75c39b4f",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": "fkd34VceBlAS0mMp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "74a43c89-3cf6-4814-ab9a-f000fb2eb7d2",
+              "name": "emailBody",
+              "value": "={{ $json.output.emailBody }}",
+              "type": "string"
+            },
+            {
+              "id": "96d65148-22fc-4acb-b2e7-7a0b892929bc",
+              "name": "reasoning",
+              "value": "={{ $json.output.reason }}",
+              "type": "string"
+            },
+            {
+              "id": "393e3445-3983-4f20-ad64-5de5033a8c60",
+              "name": "escalate",
+              "value": "={{ $json.output.escalate }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1136,
+        3280
+      ],
+      "id": "c7689d05-eb9e-41a2-8e3f-7de92e80e8f9",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "openai/gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "openai/gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        3648
+      ],
+      "id": "2b144388-cae9-412f-a342-210e669779e3",
+      "name": "OpenAI Chat Model5"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"emailBody\": {\n      \"type\": \"string\",\n      \"description\": \"The body content of the email reply to be sent to the prospect in line with managers feedback.\"\n    },\n      \"reason\": {\n      \"type\": \"string\",\n      \"description\": \"Reasoning for your response.\"\n    }\n  },\n  \"required\": [\n    \"emailBody\",\n    \"reason\",\n    \"escalate\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        3648
+      ],
+      "id": "9225bfaa-c2fa-402e-8ae3-54a40e92386b",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "chatId": "7466921638",
+        "text": "=### Human Action Needed! \n\n### Sales Enquiry from  {{ $('Loop Over Items3').item.json.emailAddress }}\n\n### Previous Emails Context:\n-------------------\n\n{{ $('Reformat Emails').item.json.output.previousEmails }}\n\n\n### New Email: \n-------------------\n\n{{ $('Reformat Emails').item.json.output.newProspectEmail }}\n\n\nCan't handle this - Here's why: \n-------------------\n\n{{ $('Email Agent').item.json.output.reason }}\n\nPlease respond to them as soon as you can! ",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -320,
+        2144
+      ],
+      "id": "8df704ba-aeea-438b-a0cf-1b7820d09242",
+      "name": "Telegram3",
+      "webhookId": "284550ec-7ef0-4f23-b6a1-7b6bd33b4183"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -4480,
+        1824
+      ],
+      "id": "a3c71401-d6ae-4fef-a6b3-e26b02f1a43d",
+      "name": "OpenAI Chat Model7",
+      "credentials": {
+        "openAiApi": {
+          "id": "fkd34VceBlAS0mMp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"newProspectEmail\": {\n      \"type\": \"string\",\n      \"description\": \"The body content of the new email received by the prospect which we need to answer.\"\n    },\n      \"previousEmails\": {\n      \"type\": \"string\",\n      \"description\": \"Summary of previous emails in the same thread in dotpoint format.\"\n    }\n  },\n  \"required\": [\n    \"newProspectEmail\",\n    \"previousEmails\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -4240,
+        1824
+      ],
+      "id": "edad19a7-c77f-4b18-9d29-050d9e940275",
+      "name": "Structured Output Parser5"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"calendar\": {\n      \"type\": \"boolean\",\n      \"description\": \"True if Calendar Email and False if Information Email\"\n    }\n  },\n  \"required\": [\n    \"newProspectEmail\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -3920,
+        1808
+      ],
+      "id": "0b371f5f-ec13-4386-8be4-76df135af87e",
+      "name": "Structured Output Parser6"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.calendar }}",
+                    "rightValue": "Calendar",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "925bd4a7-f8a4-4b93-8fb9-47f6a238c89d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Calendar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a2580899-2579-496c-9f96-ea14fb997c4f",
+                    "leftValue": "={{ $json.output.calendar }}",
+                    "rightValue": "Email",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Email"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -3728,
+        1552
+      ],
+      "id": "0880630e-0cd4-4232-9d4b-272de9f9c637",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You're an inbox manager. A new email was received in your inbox. \n\nThe emails are given to you in JSON String formatting. \n\nYour job is to reformat this for your manager. \n\nYou must: \n\n1. Identify the newest email which was just recived and extract this email. This email will be dated today {{ $now }} and will be the last email in the thread. The email generally has the previous email at the end of it so you must decide when it is referencing a previous email and remove that so the final output is just the new email body. Put this in the newPorspectEmail parameter of your output.  \n\n2. Summarise the previous emails in the thread in dotpoint format so your manager can quickly read over it for context. Put this in the previousEmails parameter. \n\nSometimes the email thread will not contain any previous emails. In this case then just leave the previousEmails parameter empty.\n\nHere's the email thread in JSON String: \n\n{{ $json.emails.toJsonString() }}\n\nKeep in mind the thread goes from oldest email at top to newest email at the bottom. ",
+        "hasOutputParser": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        -4624,
+        1552
+      ],
+      "id": "1adb6be1-f4e7-47f1-9954-8848f0444ad5",
+      "name": "Reformat Emails"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=New email just came in. \n\nHere's the email: \n\n{{ $json.output.newProspectEmail }} \n\nHere's a summary of the thread the email is on: \n\n{{ $json.output.previousEmails }}\n\nClassify it.\n",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You're a sales inbox manager. \n\nThe emails that come in from clients are either to book a call or to get more info. \n\nYour job is to classify each email as a calendar or information email. \n\nCalendar emails are those where the prospect suggests being booked in for a call. \n\nInformation emails are those which require a reply from the sales team to progress further. This could be the prospect asking for information or making an enquiry. "
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        -4240,
+        1552
+      ],
+      "id": "498c83f3-fe42-458c-b3c4-f7cd4e773473",
+      "name": "Calendar or Email"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -5168,
+        1440
+      ],
+      "id": "97c7aeb9-d62d-4064-a7b6-930ff716ed46",
+      "name": "Loop Over Items3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -4624,
+        1232
+      ],
+      "id": "2c6bdf83-1747-48fa-983c-11376448efb2",
+      "name": "No Operation, do nothing2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8a3b632f-a823-434f-85bb-30fb268370dd",
+              "leftValue": "={{ $json.decision }}",
+              "rightValue": "Sales",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -4944,
+        1520
+      ],
+      "id": "33d3ea9d-cc21-47fe-8659-57ac45f2b62d",
+      "name": "Sales Email?"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data.Approve }}",
+                    "rightValue": "Yes",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0a83b8bf-1fbe-4646-a7bd-8d5efd817629"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Approved"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "327f1432-f2fd-4c09-bcf9-b03effea941f",
+                    "leftValue": "={{ $json.data.Approve }}",
+                    "rightValue": "No",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Iterate"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "749ca2c5-30f9-4acd-b9a2-5a10fc4d2b3e",
+                    "leftValue": "={{ $json.data.Approve }}",
+                    "rightValue": "Stop - Human Handling",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Human"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -688,
+        3280
+      ],
+      "id": "cd3ca52c-26f9-46d9-95ea-bec16afbf2ab",
+      "name": "Decision"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "7466921638",
+        "message": "=### Prospect = {{ $('Loop Over Items3').item.json.emailAddress }}\n\n### Action = Replying to Email\n-------------------\n\n### Previous Emails:\n-------------------\n\n{{ $('Reformat Emails').item.json.output.previousEmails }} \n\n### Customer Email: \n-------------------\n\n{{ $('Reformat Emails').item.json.output.newProspectEmail }} \n\n### Draft Email: \n------------------- \n\n{{ $json.emailBody }} \n\n### Reasoning: \n------------------- \n\n{{ $json.reasoning }}\n",
+        "responseType": "customForm",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Approve",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  },
+                  {
+                    "option": "Stop - Human Handling"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Feedback"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -944,
+        3280
+      ],
+      "id": "61c427d0-599d-42d5-9472-e81bb5f8cbe9",
+      "name": "HITL2",
+      "webhookId": "0d8ea603-da41-45b1-9a5f-9015298b01ab"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Loop Over Items3').item.json.messageId }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -2096,
+        3344
+      ],
+      "id": "a6f2fe5a-6597-4ffb-9b62-34ec68fb6843",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        -2144,
+        720
+      ],
+      "id": "70e937c9-dd42-436f-ba99-d21a1ef8dcf4",
+      "name": "think_tool"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "7466921638",
+        "message": "=### Prospect = {{ $('Loop Over Items3').item.json.emailAddress }}\n\n### Action = Sending Availabilties \n-------------------\n\n### Previous Emails:\n-------------------\n\n{{ $('Reformat Emails').item.json.output.previousEmails }} \n\n### Customer Email: \n-------------------\n\n{{ $('Reformat Emails').item.json.output.newProspectEmail }} \n\n### Availabilities: \n------------------- \n\n{{ $('Calendar Agent').item.json.output.calendarAvailabilities }}\n\n### Draft Email: \n------------------- \n\n{{ $('Edit Fields1').item.json.emailBody }} \n\n",
+        "responseType": "customForm",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Approve",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  },
+                  {
+                    "option": "Stop - Human Handling"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Feedback"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -944,
+        1200
+      ],
+      "id": "cd3e1019-a08e-4861-a6c6-78e1eedfccd7",
+      "name": "HITL",
+      "webhookId": "a60d5f8f-5b4e-4434-8109-82116f794ea9"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data.Approve }}",
+                    "rightValue": "Yes",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0a83b8bf-1fbe-4646-a7bd-8d5efd817629"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Approved"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "327f1432-f2fd-4c09-bcf9-b03effea941f",
+                    "leftValue": "={{ $json.data.Approve }}",
+                    "rightValue": "No",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Iterate"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "749ca2c5-30f9-4acd-b9a2-5a10fc4d2b3e",
+                    "leftValue": "={{ $json.data.Approve }}",
+                    "rightValue": "Stop - Human Handling",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Human"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -688,
+        1200
+      ],
+      "id": "4e71e9f6-1f54-47f4-bd6a-7c7edd45cd32",
+      "name": "Decision1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data.Approve }}",
+                    "rightValue": "Yes",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0a83b8bf-1fbe-4646-a7bd-8d5efd817629"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Approved"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "327f1432-f2fd-4c09-bcf9-b03effea941f",
+                    "leftValue": "={{ $json.data.Approve }}",
+                    "rightValue": "No",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Iterate"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "749ca2c5-30f9-4acd-b9a2-5a10fc4d2b3e",
+                    "leftValue": "={{ $json.data.Approve }}",
+                    "rightValue": "Stop - Human Handling",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Human"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -688,
+        768
+      ],
+      "id": "d83934f4-1cf3-4e4d-8a8b-0ba5db1966f5",
+      "name": "Decision2"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "7466921638",
+        "message": "=### Prospect = {{ $('Loop Over Items3').item.json.emailAddress }}\n\n### Action = Booking Call + Email Confirmation  \n-------------------\n\n### Previous Emails:\n-------------------\n\n{{ $('Reformat Emails').item.json.output.previousEmails }} \n\n### Customer Email: \n-------------------\n\n{{ $('Reformat Emails').item.json.output.newProspectEmail }} \n\n### Availabilities: \n------------------- \n\n{{ $('Calendar Agent').item.json.output.calendarAvailabilities }}\n\n### Event Details: \n------------------- \n\n{{ $('Edit Fields1').item.json.eventName }}\nFrom: {{ $('Edit Fields1').item.json.startTime }}\nTo: {{ $('Edit Fields1').item.json.endTime }}\n\n### Draft Email: \n------------------- \n\n{{ $('Edit Fields1').item.json.emailBody }} \n",
+        "responseType": "customForm",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Approve",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  },
+                  {
+                    "option": "Stop - Human Handling"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Feedback"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -944,
+        768
+      ],
+      "id": "8d607c43-88e4-4c65-b916-3f91075b1bf4",
+      "name": "HITL3",
+      "webhookId": "e7ce316f-44b9-4a80-ad09-adda19fb163b"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8c816866-eec9-4c02-a7df-e37a4c1fc89f",
+              "leftValue": "={{ $json.output.escalate }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1600,
+        3152
+      ],
+      "id": "84dc922d-7568-4622-aa2a-9cf4cdd763bc",
+      "name": "Escalate?"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -7936,
+        1408
+      ],
+      "id": "08ab028a-6d52-47a9-a817-ffeb574fa0c3",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Loop Over Items3').item.json.threadId }}",
+        "messageId": "={{ $('Loop Over Items3').item.json.messageId }}",
+        "message": "={{ $('Edit Fields2').item.json.emailBody }}",
+        "options": {
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        400,
+        2800
+      ],
+      "id": "dd39c859-8b86-479f-831d-90913d4fd87a",
+      "name": "Respond to Enquiry",
+      "webhookId": "b1ed254e-813e-4a94-bc14-ef56e4e5c863"
+    },
+    {
+      "parameters": {
+        "content": "# Clean History",
+        "height": 940,
+        "width": 480,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4784,
+        1040
+      ],
+      "typeVersion": 1,
+      "id": "3f020245-9ae5-49a6-8655-d4387a2c802b",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "# Calendar or Email agent?",
+        "height": 940,
+        "width": 780,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4288,
+        1040
+      ],
+      "typeVersion": 1,
+      "id": "2aa30fc4-aaa9-4c0d-aaef-59a9b6536d6a",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "# Availability + Draft Event/Confirmation Email ",
+        "height": 560,
+        "width": 900,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2768,
+        368
+      ],
+      "typeVersion": 1,
+      "id": "b63927a7-5b94-459d-ab8d-9d22d4c6e7a2",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "# Human Feedback ",
+        "height": 980,
+        "width": 600,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1040,
+        560
+      ],
+      "typeVersion": 1,
+      "id": "43c1fa44-422d-4b65-9d19-d112ef727aa1",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "# Book Event + Confirmation Email ",
+        "height": 380,
+        "width": 900,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        208,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "eb31931f-18c5-4e9d-9a1e-1f6966a56753",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "# Send Availability  ",
+        "height": 320,
+        "width": 600,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -160,
+        880
+      ],
+      "typeVersion": 1,
+      "id": "937ae2c1-dd16-405d-97a5-9d4db8508289",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "# Revision  ",
+        "height": 1240,
+        "width": 600,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        784,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "7d50d97b-e3c3-41d0-adc1-0c99bda3c4bf",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "# Escalate to Human  ",
+        "height": 360,
+        "width": 600,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -416,
+        2048
+      ],
+      "typeVersion": 1,
+      "id": "43de4ff0-ae2e-41d4-9c2b-c8c59a71a5e5",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "# Check Google Drive + Response Email Draft ",
+        "height": 1280,
+        "width": 920,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2336,
+        2864
+      ],
+      "typeVersion": 1,
+      "id": "8e387911-df4c-4b30-8bdb-c9195740ca01",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "# Human Feedback",
+        "height": 460,
+        "width": 820,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1264,
+        3168
+      ],
+      "typeVersion": 1,
+      "id": "1af459d5-3d75-4c9f-98d6-133752ba8c0f",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "# Respond to Enquiry",
+        "height": 460,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        272,
+        2672
+      ],
+      "typeVersion": 1,
+      "id": "8dd8115e-3e90-4795-91e6-c501b9054c91",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "content": "# Revision ",
+        "height": 580,
+        "width": 640,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        288,
+        3248
+      ],
+      "typeVersion": 1,
+      "id": "b96441f1-69a1-4ae2-a47d-c12dab94ff0f",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -7936,
+        1600
+      ],
+      "id": "8ba36ec0-f1ab-477e-92bb-d9b9a9cadc24",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "385f8055-bf49-4712-aa37-bbfaaf90e8ff",
+              "name": "sender_email",
+              "value": "={{ $json.From }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -7088,
+        2080
+      ],
+      "id": "e7adfc50-5f53-40e4-91f9-e37c98d1c72e",
+      "name": "Get Sender"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 10,
+        "filters": {
+          "includeSpamTrash": false,
+          "receivedAfter": "={{ $now.minus(1, 'day') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -7664,
+        1488
+      ],
+      "id": "12948325-8714-4ea3-9b8a-41d8406e0d9a",
+      "name": "New Emails",
+      "webhookId": "4109dee0-5a74-4ad0-af77-c42562fac1c4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1kWBToFNQFaDktHu",
+          "name": "annsinclair31@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 10,
+        "filters": {
+          "includeSpamTrash": false,
+          "q": "-from:annsinclair31@gmail.com",
+          "receivedAfter": "={{ $now.minus(1, 'day') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -7344,
+        2064
+      ],
+      "id": "18ad4ff5-718b-40d4-bb3d-b580964eaa36",
+      "name": "New Emails (NOT from ANN)",
+      "webhookId": "4109dee0-5a74-4ad0-af77-c42562fac1c4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1kWBToFNQFaDktHu",
+          "name": "annsinclair31@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Cold Email Best Practices\n**Is NOT to send sequences in same thread. \"That's just three reminders that I didn't want to respond to you.\"** \n**So, IF the actual back and forth between all the outbound messages and the inbound responses is important later, we will need to do something different to grab all the messages. Probably by getting the leads email address and searching by that.**",
+        "height": 360,
+        "width": 880,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -7568,
+        1920
+      ],
+      "typeVersion": 1,
+      "id": "3ce2540d-7d10-42b8-a49d-14f2ba67fe61",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Right Now I Have No Idea Why all this is necessary.",
+        "height": 580,
+        "width": 840,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -7024,
+        1248
+      ],
+      "typeVersion": 1,
+      "id": "52cc88eb-cc07-4a3b-9b7e-f6efc86a011d",
+      "name": "Sticky Note16"
+    },
+    {
+      "parameters": {
+        "content": "[Video Placemark](https://youtu.be/VNnFACiBC2I?si=UIsVhgpSvTSQmJNY&t=3187)",
+        "height": 80,
+        "width": 280
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -7040,
+        1088
+      ],
+      "typeVersion": 1,
+      "id": "106e949e-4f93-4963-9dc8-c7aedfe17212",
+      "name": "Sticky Note2"
+    }
+  ],
+  "connections": {
+    "Fix 'From'": {
+      "main": [
+        [
+          {
+            "node": "Filter Inbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Inbound": {
+      "main": [
+        [
+          {
+            "node": "Get Full Thread",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Email Address",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Full Thread": {
+      "main": [
+        [
+          {
+            "node": "Reformat Thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reformat Thread": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sales Email? ": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Email Address": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Sales Email? ",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Calendar": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "Feedback Message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Booking a Call?": {
+      "main": [
+        [
+          {
+            "node": "HITL3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HITL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Availability": {
+      "main": [
+        [
+          {
+            "node": "Feedback Message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Booking a Call?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Feedback Message3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Feedback Message4": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "kamexa_information",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Completed Message": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Completed Message1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "kamexa_information",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "HITL2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram3": {
+      "main": [
+        [
+          {
+            "node": "Completed Message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Reformat Emails",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Calendar or Email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser5": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Reformat Emails",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser6": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Calendar or Email",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reformat Emails": {
+      "main": [
+        [
+          {
+            "node": "Calendar or Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar or Email": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items3": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sales Email?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sales Email?": {
+      "main": [
+        [
+          {
+            "node": "Reformat Emails",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decision": {
+      "main": [
+        [
+          {
+            "node": "Respond to Enquiry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HITL2": {
+      "main": [
+        [
+          {
+            "node": "Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HITL": {
+      "main": [
+        [
+          {
+            "node": "Decision1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decision1": {
+      "main": [
+        [
+          {
+            "node": "Send Availability",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decision2": {
+      "main": [
+        [
+          {
+            "node": "Google Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HITL3": {
+      "main": [
+        [
+          {
+            "node": "Decision2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escalate?": {
+      "main": [
+        [
+          {
+            "node": "Telegram3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "New Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Enquiry": {
+      "main": [
+        [
+          {
+            "node": "Completed Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "New Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Sender": {
+      "main": [
+        []
+      ]
+    },
+    "New Emails": {
+      "main": [
+        [
+          {
+            "node": "Fix 'From'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_events": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "think_tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "New Emails": [
+      {
+        "json": {
+          "id": "196dee809d5182e0",
+          "threadId": "196dee463bf63aa2",
+          "snippet": "no plz, dont ghost me. i wanna buy your stuff. lets meet On Sat, May 17, 2025 at 11:40 AM Ann Sinclair <annsinclair31@gmail.com> wrote: Yo {{first_name}}, Totally fine if now's not the time —",
+          "payload": {
+            "mimeType": "multipart/alternative"
+          },
+          "sizeEstimate": 12902,
+          "historyId": "24429",
+          "internalDate": "1747496458000",
+          "labels": [
+            {
+              "id": "INBOX",
+              "name": "INBOX"
+            },
+            {
+              "id": "IMPORTANT",
+              "name": "IMPORTANT"
+            },
+            {
+              "id": "CATEGORY_PERSONAL",
+              "name": "CATEGORY_PERSONAL"
+            }
+          ],
+          "From": "Jose Madarieta <jmadarieta3@gmail.com>",
+          "Subject": "Re: EMAIL 1: This is weird, but it works.",
+          "To": "Ann Sinclair <annsinclair31@gmail.com>"
+        }
+      },
+      {
+        "json": {
+          "id": "196dee7052cbfefd",
+          "threadId": "196dee463bf63aa2",
+          "snippet": "Yo {{first_name}}, Totally fine if now's not the time — just figured I'd check in one last time. If you ever get tired of [insert pain point again], this thing's still running quietly in",
+          "payload": {
+            "mimeType": "multipart/alternative"
+          },
+          "sizeEstimate": 7010,
+          "historyId": "24429",
+          "internalDate": "1747496403000",
+          "labels": [
+            {
+              "id": "SENT",
+              "name": "SENT"
+            }
+          ],
+          "Subject": "Re: EMAIL 1: This is weird, but it works.",
+          "From": "Ann Sinclair <annsinclair31@gmail.com>",
+          "To": "Jose Madarieta <jmadarieta3@gmail.com>"
+        }
+      },
+      {
+        "json": {
+          "id": "196dee6b295fc20b",
+          "threadId": "196dee463bf63aa2",
+          "snippet": "Hey {{first_name}}, Here's that 2-min demo I mentioned. 👉 [Link to demo, Loom, screenshot, whatever.] It basically does all the boring/repetitive shit so you don't have to. If you ever feel",
+          "payload": {
+            "mimeType": "multipart/alternative"
+          },
+          "sizeEstimate": 4662,
+          "historyId": "24429",
+          "internalDate": "1747496383000",
+          "labels": [
+            {
+              "id": "SENT",
+              "name": "SENT"
+            }
+          ],
+          "Subject": "Re: EMAIL 1: This is weird, but it works.",
+          "From": "Ann Sinclair <annsinclair31@gmail.com>",
+          "To": "Jose Madarieta <jmadarieta3@gmail.com>"
+        }
+      },
+      {
+        "json": {
+          "id": "196dee4f39767c21",
+          "threadId": "196dee463bf63aa2",
+          "snippet": "Hey {{first_name}}, This'll sound strange, but I built something that fixes a problem you probably forgot you're still dealing with. It's called [insert product name or keep it vague], and",
+          "payload": {
+            "mimeType": "multipart/alternative"
+          },
+          "sizeEstimate": 2399,
+          "historyId": "24351",
+          "internalDate": "1747496268000",
+          "labels": [
+            {
+              "id": "SENT",
+              "name": "SENT"
+            }
+          ],
+          "Subject": "EMAIL 1: This is weird, but it works.",
+          "From": "Ann Sinclair <annsinclair31@gmail.com>",
+          "To": "Jose Madarieta <jmadarieta3@gmail.com>"
+        }
+      }
+    ],
+    "Merge1": [
+      {
+        "json": {
+          "threadId": "196dee463bf63aa2",
+          "emails": [
+            {
+              "dateTime": "2025-05-18T01:37:48+10:00",
+              "from": "rep",
+              "message": "Hey {{first_name}},\r\n\r\nThis’ll sound strange, but I built something that fixes a problem you\r\nprobably forgot you're still dealing with.\r\n\r\nIt's called [insert product name or keep it vague], and it handles [insert\r\npainful task/frustrating process] for you. No more [insert annoying\r\noutcome], no more babysitting.\r\n\r\nNo pitch, just curious — want to see what it looks like?\r\n\r\n– Anna\r\n[One-liner about what it does or your credibility]\r\nP.S. Happy to send a quick 2-minute video.\r\n\r\n-- \r\nThanks,\r\n\r\nAnn Sinclair\r\nClient Success Manager\r\n\r\n\r\nwww.duileadlab.com\r\n"
+            },
+            {
+              "dateTime": "2025-05-18T01:39:43+10:00",
+              "from": "rep",
+              "message": "Hey {{first_name}},\r\n\r\nHere’s that 2-min demo I mentioned.\r\n👉 [Link to demo, Loom, screenshot, whatever.]\r\n\r\nIt basically does all the boring/repetitive shit so you don’t have to. If\r\nyou ever feel like your [process/team/inbox/sanity] is on fire, this fixes\r\nit.\r\n\r\nLet me know if you want to kick the tires — or just reply “interested” and\r\nI’ll send you the next step.\r\n\r\n– ANNA\r\n\r\nOn Sat, 17 May 2025 at 11:37, Ann Sinclair <annsinclair31@gmail.com> wrote:\r\n\r\n> Hey {{first_name}},\r\n>\r\n> This’ll sound strange, but I built something that fixes a problem you\r\n> probably forgot you're still dealing with.\r\n>\r\n> It's called [insert product name or keep it vague], and it handles [insert\r\n> painful task/frustrating process] for you. No more [insert annoying\r\n> outcome], no more babysitting.\r\n>\r\n> No pitch, just curious — want to see what it looks like?\r\n>\r\n> – Anna\r\n> [One-liner about what it does or your credibility]\r\n> P.S. Happy to send a quick 2-minute video.\r\n>\r\n> --\r\n> Thanks,\r\n>\r\n> Ann Sinclair\r\n> Client Success Manager\r\n>\r\n>\r\n> www.duileadlab.com\r\n>\r\n>\r\n\r\n-- \r\nThanks,\r\n\r\nAnn Sinclair\r\nClient Success Manager\r\n\r\n\r\nwww.duileadlab.com\r\n"
+            },
+            {
+              "dateTime": "2025-05-18T01:40:03+10:00",
+              "from": "rep",
+              "message": "Yo {{first_name}},\r\n\r\nTotally fine if now’s not the time — just figured I’d check in one last\r\ntime.\r\n\r\nIf you ever get tired of [insert pain point again], this thing’s still\r\nrunning quietly in the background solving it for folks like you.\r\n\r\nWant in? Hit me back and I’ll make it stupid simple.\r\n\r\nIf not, I’ll slink away into the shadows like a polite little automation\r\ngoblin.\r\n\r\n– Anna\r\n“Built for people who hate busywork.”\r\n\r\nOn Sat, 17 May 2025 at 11:39, Ann Sinclair <annsinclair31@gmail.com> wrote:\r\n\r\n> Hey {{first_name}},\r\n>\r\n> Here’s that 2-min demo I mentioned.\r\n> 👉 [Link to demo, Loom, screenshot, whatever.]\r\n>\r\n> It basically does all the boring/repetitive shit so you don’t have to. If\r\n> you ever feel like your [process/team/inbox/sanity] is on fire, this fixes\r\n> it.\r\n>\r\n> Let me know if you want to kick the tires — or just reply “interested” and\r\n> I’ll send you the next step.\r\n>\r\n> – ANNA\r\n>\r\n> On Sat, 17 May 2025 at 11:37, Ann Sinclair <annsinclair31@gmail.com>\r\n> wrote:\r\n>\r\n>> Hey {{first_name}},\r\n>>\r\n>> This’ll sound strange, but I built something that fixes a problem you\r\n>> probably forgot you're still dealing with.\r\n>>\r\n>> It's called [insert product name or keep it vague], and it handles\r\n>> [insert painful task/frustrating process] for you. No more [insert annoying\r\n>> outcome], no more babysitting.\r\n>>\r\n>> No pitch, just curious — want to see what it looks like?\r\n>>\r\n>> – Anna\r\n>> [One-liner about what it does or your credibility]\r\n>> P.S. Happy to send a quick 2-minute video.\r\n>>\r\n>> --\r\n>> Thanks,\r\n>>\r\n>> Ann Sinclair\r\n>> Client Success Manager\r\n>>\r\n>>\r\n>> www.duileadlab.com\r\n>>\r\n>>\r\n>\r\n> --\r\n> Thanks,\r\n>\r\n> Ann Sinclair\r\n> Client Success Manager\r\n>\r\n>\r\n> www.duileadlab.com\r\n>\r\n>\r\n\r\n-- \r\nThanks,\r\n\r\nAnn Sinclair\r\nClient Success Manager\r\n\r\n\r\nwww.duileadlab.com\r\n"
+            },
+            {
+              "dateTime": "2025-05-18T01:40:58+10:00",
+              "from": "customer",
+              "message": "i wanna buy your shit\r\n\r\nOn Sat, May 17, 2025 at 11:40 AM Ann Sinclair <annsinclair31@gmail.com>\r\nwrote:\r\n\r\n> Yo {{first_name}},\r\n>\r\n> Totally fine if now’s not the time — just figured I’d check in one last\r\n> time.\r\n>\r\n> If you ever get tired of [insert pain point again], this thing’s still\r\n> running quietly in the background solving it for folks like you.\r\n>\r\n> Want in? Hit me back and I’ll make it stupid simple.\r\n>\r\n> If not, I’ll slink away into the shadows like a polite little automation\r\n> goblin.\r\n>\r\n> – Anna\r\n> “Built for people who hate busywork.”\r\n>\r\n> On Sat, 17 May 2025 at 11:39, Ann Sinclair <annsinclair31@gmail.com>\r\n> wrote:\r\n>\r\n>> Hey {{first_name}},\r\n>>\r\n>> Here’s that 2-min demo I mentioned.\r\n>> 👉 [Link to demo, Loom, screenshot, whatever.]\r\n>>\r\n>> It basically does all the boring/repetitive shit so you don’t have to. If\r\n>> you ever feel like your [process/team/inbox/sanity] is on fire, this fixes\r\n>> it.\r\n>>\r\n>> Let me know if you want to kick the tires — or just reply “interested”\r\n>> and I’ll send you the next step.\r\n>>\r\n>> – ANNA\r\n>>\r\n>> On Sat, 17 May 2025 at 11:37, Ann Sinclair <annsinclair31@gmail.com>\r\n>> wrote:\r\n>>\r\n>>> Hey {{first_name}},\r\n>>>\r\n>>> This’ll sound strange, but I built something that fixes a problem you\r\n>>> probably forgot you're still dealing with.\r\n>>>\r\n>>> It's called [insert product name or keep it vague], and it handles\r\n>>> [insert painful task/frustrating process] for you. No more [insert annoying\r\n>>> outcome], no more babysitting.\r\n>>>\r\n>>> No pitch, just curious — want to see what it looks like?\r\n>>>\r\n>>> – Anna\r\n>>> [One-liner about what it does or your credibility]\r\n>>> P.S. Happy to send a quick 2-minute video.\r\n>>>\r\n>>> --\r\n>>> Thanks,\r\n>>>\r\n>>> Ann Sinclair\r\n>>> Client Success Manager\r\n>>>\r\n>>>\r\n>>> www.duileadlab.com\r\n>>>\r\n>>>\r\n>>\r\n>> --\r\n>> Thanks,\r\n>>\r\n>> Ann Sinclair\r\n>> Client Success Manager\r\n>>\r\n>>\r\n>> www.duileadlab.com\r\n>>\r\n>>\r\n>\r\n> --\r\n> Thanks,\r\n>\r\n> Ann Sinclair\r\n> Client Success Manager\r\n>\r\n>\r\n> www.duileadlab.com\r\n>\r\n>\r\n"
+            }
+          ],
+          "emailAddress": "jmadarieta3@gmail.com",
+          "threadIdToMatch": "196dee463bf63aa2",
+          "messageId": "196dee809d5182e0"
+        }
+      }
+    ],
+    "Get Full Thread": [
+      {
+        "json": {
+          "id": "196dee4f39767c21",
+          "threadId": "196dee463bf63aa2",
+          "snippet": "Hey {{first_name}}, This'll sound strange, but I built something that fixes a problem you probably forgot you're still dealing with. It's called [insert product name or keep it vague], and",
+          "payload": {
+            "partId": "",
+            "mimeType": "multipart/alternative",
+            "filename": "",
+            "body": {
+              "size": 0
+            },
+            "parts": [
+              {
+                "partId": "0",
+                "mimeType": "text/plain",
+                "filename": "",
+                "headers": [
+                  {
+                    "name": "Content-Type",
+                    "value": "text/plain; charset=\"UTF-8\""
+                  },
+                  {
+                    "name": "Content-Transfer-Encoding",
+                    "value": "quoted-printable"
+                  }
+                ],
+                "body": {
+                  "size": 569,
+                  "data": "SGV5IHt7Zmlyc3RfbmFtZX19LA0KDQpUaGlz4oCZbGwgc291bmQgc3RyYW5nZSwgYnV0IEkgYnVpbHQgc29tZXRoaW5nIHRoYXQgZml4ZXMgYSBwcm9ibGVtIHlvdQ0KcHJvYmFibHkgZm9yZ290IHlvdSdyZSBzdGlsbCBkZWFsaW5nIHdpdGguDQoNCkl0J3MgY2FsbGVkIFtpbnNlcnQgcHJvZHVjdCBuYW1lIG9yIGtlZXAgaXQgdmFndWVdLCBhbmQgaXQgaGFuZGxlcyBbaW5zZXJ0DQpwYWluZnVsIHRhc2svZnJ1c3RyYXRpbmcgcHJvY2Vzc10gZm9yIHlvdS4gTm8gbW9yZSBbaW5zZXJ0IGFubm95aW5nDQpvdXRjb21lXSwgbm8gbW9yZSBiYWJ5c2l0dGluZy4NCg0KTm8gcGl0Y2gsIGp1c3QgY3VyaW91cyDigJQgd2FudCB0byBzZWUgd2hhdCBpdCBsb29rcyBsaWtlPw0KDQrigJMgQW5uYQ0KW09uZS1saW5lciBhYm91dCB3aGF0IGl0IGRvZXMgb3IgeW91ciBjcmVkaWJpbGl0eV0NClAuUy4gSGFwcHkgdG8gc2VuZCBhIHF1aWNrIDItbWludXRlIHZpZGVvLg0KDQotLSANClRoYW5rcywNCg0KQW5uIFNpbmNsYWlyDQpDbGllbnQgU3VjY2VzcyBNYW5hZ2VyDQoNCg0Kd3d3LmR1aWxlYWRsYWIuY29tDQo="
+                }
+              },
+              {
+                "partId": "1",
+                "mimeType": "text/html",
+                "filename": "",
+                "headers": [
+                  {
+                    "name": "Content-Type",
+                    "value": "text/html; charset=\"UTF-8\""
+                  },
+                  {
+                    "name": "Content-Transfer-Encoding",
+                    "value": "quoted-printable"
+                  }
+                ],
+                "body": {
+                  "size": 1097,
+                  "data": "PGRpdiBkaXI9Imx0ciI-PGRpdj48cD5IZXkge3tmaXJzdF9uYW1lfX0sPC9wPg0KPHA-VGhpc-KAmWxsIHNvdW5kIHN0cmFuZ2UsIGJ1dCBJIGJ1aWx0IHNvbWV0aGluZyB0aGF0IGZpeGVzIGEgcHJvYmxlbSB5b3UgcHJvYmFibHkgZm9yZ290IHlvdSYjMzk7cmUgc3RpbGwgZGVhbGluZyB3aXRoLjwvcD4NCjxwPkl0JiMzOTtzIGNhbGxlZCBbaW5zZXJ0IHByb2R1Y3QgbmFtZSBvciBrZWVwIGl0IHZhZ3VlXSwgYW5kIGl0IGhhbmRsZXMgW2luc2VydCBwYWluZnVsIHRhc2svZnJ1c3RyYXRpbmcgcHJvY2Vzc10gZm9yIHlvdS4gTm8gbW9yZSBbaW5zZXJ0IGFubm95aW5nIG91dGNvbWVdLCBubyBtb3JlIGJhYnlzaXR0aW5nLjwvcD4NCjxwPk5vIHBpdGNoLCBqdXN0IGN1cmlvdXMg4oCUIHdhbnQgdG8gc2VlIHdoYXQgaXQgbG9va3MgbGlrZT88L3A-DQo8cD7igJMgQW5uYTxicj4NCltPbmUtbGluZXIgYWJvdXQgd2hhdCBpdCBkb2VzIG9yIHlvdXIgY3JlZGliaWxpdHldPGJyPg0KUC5TLiBIYXBweSB0byBzZW5kIGEgcXVpY2sgMi1taW51dGUgdmlkZW8uPC9wPjwvZGl2PjxkaXY-PGJyPjwvZGl2PjxzcGFuIGNsYXNzPSJnbWFpbF9zaWduYXR1cmVfcHJlZml4Ij4tLSA8L3NwYW4-PGJyPjxkaXYgZGlyPSJsdHIiIGNsYXNzPSJnbWFpbF9zaWduYXR1cmUiIGRhdGEtc21hcnRtYWlsPSJnbWFpbF9zaWduYXR1cmUiPjxkaXYgZGlyPSJsdHIiPlRoYW5rcyw8ZGl2Pjxicj48L2Rpdj48ZGl2PkFubiBTaW5jbGFpcjwvZGl2PjxkaXY-Q2xpZW50IFN1Y2Nlc3MgTWFuYWdlcjwvZGl2PjxkaXY-PGJyPjwvZGl2PjxkaXY-PGltZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMzIiBzcmM9Imh0dHBzOi8vY2kzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9tYWlsLXNpZy9BSW9ySzR3ODJ2cTNrbHZqMGl3UTJQNi1iYVcxcjM1WFRENXBnSkdyYnB3Yzhma2QtbFVmUm81XzNqOTVuQW9LalZaMkNWY3lQLVItRXc0Ij48YnI-PC9kaXY-PGRpdj48YSBocmVmPSJodHRwOi8vd3d3LmR1aWxlYWRsYWIuY29tLyIgdGFyZ2V0PSJfYmxhbmsiPnd3dy5kdWlsZWFkbGFiLmNvbTwvYT48YnI-PC9kaXY-PGRpdj48YnI-PC9kaXY-PC9kaXY-PC9kaXY-PC9kaXY-DQo="
+                }
+              }
+            ]
+          },
+          "sizeEstimate": 2399,
+          "historyId": "24351",
+          "internalDate": "1747496268000",
+          "labels": [
+            {
+              "id": "SENT",
+              "name": "SENT"
+            }
+          ],
+          "MIME-Version": "1.0",
+          "Date": "Sat, 17 May 2025 11:37:48 -0400",
+          "Message-ID": "<CABr6b3Y4zis3nv3_d3gM_yQ5TT-ZVJEURb0ZEmXeR3xD6ZaWvA@mail.gmail.com>",
+          "Subject": "EMAIL 1: This is weird, but it works.",
+          "From": "Ann Sinclair <annsinclair31@gmail.com>",
+          "To": "Jose Madarieta <jmadarieta3@gmail.com>",
+          "Content-Type": "multipart/alternative; boundary=\"00000000000054534b063556ae9a\""
+        }
+      },
+      {
+        "json": {
+          "id": "196dee6b295fc20b",
+          "threadId": "196dee463bf63aa2",
+          "snippet": "Hey {{first_name}}, Here's that 2-min demo I mentioned. 👉 [Link to demo, Loom, screenshot, whatever.] It basically does all the boring/repetitive shit so you don't have to. If you ever feel",
+          "payload": {
+            "partId": "",
+            "mimeType": "multipart/alternative",
+            "filename": "",
+            "body": {
+              "size": 0
+            },
+            "parts": [
+              {
+                "partId": "0",
+                "mimeType": "text/plain",
+                "filename": "",
+                "headers": [
+                  {
+                    "name": "Content-Type",
+                    "value": "text/plain; charset=\"UTF-8\""
+                  },
+                  {
+                    "name": "Content-Transfer-Encoding",
+                    "value": "quoted-printable"
+                  }
+                ],
+                "body": {
+                  "size": 1173,
+                  "data": "SGV5IHt7Zmlyc3RfbmFtZX19LA0KDQpIZXJl4oCZcyB0aGF0IDItbWluIGRlbW8gSSBtZW50aW9uZWQuDQrwn5GJIFtMaW5rIHRvIGRlbW8sIExvb20sIHNjcmVlbnNob3QsIHdoYXRldmVyLl0NCg0KSXQgYmFzaWNhbGx5IGRvZXMgYWxsIHRoZSBib3JpbmcvcmVwZXRpdGl2ZSBzaGl0IHNvIHlvdSBkb27igJl0IGhhdmUgdG8uIElmDQp5b3UgZXZlciBmZWVsIGxpa2UgeW91ciBbcHJvY2Vzcy90ZWFtL2luYm94L3Nhbml0eV0gaXMgb24gZmlyZSwgdGhpcyBmaXhlcw0KaXQuDQoNCkxldCBtZSBrbm93IGlmIHlvdSB3YW50IHRvIGtpY2sgdGhlIHRpcmVzIOKAlCBvciBqdXN0IHJlcGx5IOKAnGludGVyZXN0ZWTigJ0gYW5kDQpJ4oCZbGwgc2VuZCB5b3UgdGhlIG5leHQgc3RlcC4NCg0K4oCTIEFOTkENCg0KT24gU2F0LCAxNyBNYXkgMjAyNSBhdCAxMTozNywgQW5uIFNpbmNsYWlyIDxhbm5zaW5jbGFpcjMxQGdtYWlsLmNvbT4gd3JvdGU6DQoNCj4gSGV5IHt7Zmlyc3RfbmFtZX19LA0KPg0KPiBUaGlz4oCZbGwgc291bmQgc3RyYW5nZSwgYnV0IEkgYnVpbHQgc29tZXRoaW5nIHRoYXQgZml4ZXMgYSBwcm9ibGVtIHlvdQ0KPiBwcm9iYWJseSBmb3Jnb3QgeW91J3JlIHN0aWxsIGRlYWxpbmcgd2l0aC4NCj4NCj4gSXQncyBjYWxsZWQgW2luc2VydCBwcm9kdWN0IG5hbWUgb3Iga2VlcCBpdCB2YWd1ZV0sIGFuZCBpdCBoYW5kbGVzIFtpbnNlcnQNCj4gcGFpbmZ1bCB0YXNrL2ZydXN0cmF0aW5nIHByb2Nlc3NdIGZvciB5b3UuIE5vIG1vcmUgW2luc2VydCBhbm5veWluZw0KPiBvdXRjb21lXSwgbm8gbW9yZSBiYWJ5c2l0dGluZy4NCj4NCj4gTm8gcGl0Y2gsIGp1c3QgY3VyaW91cyDigJQgd2FudCB0byBzZWUgd2hhdCBpdCBsb29rcyBsaWtlPw0KPg0KPiDigJMgQW5uYQ0KPiBbT25lLWxpbmVyIGFib3V0IHdoYXQgaXQgZG9lcyBvciB5b3VyIGNyZWRpYmlsaXR5XQ0KPiBQLlMuIEhhcHB5IHRvIHNlbmQgYSBxdWljayAyLW1pbnV0ZSB2aWRlby4NCj4NCj4gLS0NCj4gVGhhbmtzLA0KPg0KPiBBbm4gU2luY2xhaXINCj4gQ2xpZW50IFN1Y2Nlc3MgTWFuYWdlcg0KPg0KPg0KPiB3d3cuZHVpbGVhZGxhYi5jb20NCj4NCj4NCg0KLS0gDQpUaGFua3MsDQoNCkFubiBTaW5jbGFpcg0KQ2xpZW50IFN1Y2Nlc3MgTWFuYWdlcg0KDQoNCnd3dy5kdWlsZWFkbGFiLmNvbQ0K"
+                }
+              },
+              {
+                "partId": "1",
+                "mimeType": "text/html",
+                "filename": "",
+                "headers": [
+                  {
+                    "name": "Content-Type",
+                    "value": "text/html; charset=\"UTF-8\""
+                  },
+                  {
+                    "name": "Content-Transfer-Encoding",
+                    "value": "quoted-printable"
+                  }
+                ],
+                "body": {
+                  "size": 2404,
+                  "data": "PGRpdiBkaXI9Imx0ciI-PHA-SGV5IHt7Zmlyc3RfbmFtZX19LDwvcD4NCjxwPkhlcmXigJlzIHRoYXQgMi1taW4gZGVtbyBJIG1lbnRpb25lZC48YnI-DQrwn5GJIFtMaW5rIHRvIGRlbW8sIExvb20sIHNjcmVlbnNob3QsIHdoYXRldmVyLl08L3A-DQo8cD5JdCBiYXNpY2FsbHkgZG9lcyBhbGwgdGhlIGJvcmluZy9yZXBldGl0aXZlIHNoaXQgc28geW91IGRvbuKAmXQgaGF2ZSB0by4gSWYgeW91IGV2ZXIgZmVlbCBsaWtlIHlvdXIgW3Byb2Nlc3MvdGVhbS9pbmJveC9zYW5pdHldIGlzIG9uIGZpcmUsIHRoaXMgZml4ZXMgaXQuPC9wPg0KPHA-TGV0IG1lIGtub3cgaWYgeW91IHdhbnQgdG8ga2ljayB0aGUgdGlyZXMg4oCUIG9yIGp1c3QgcmVwbHkg4oCcaW50ZXJlc3RlZOKAnSBhbmQgSeKAmWxsIHNlbmQgeW91IHRoZSBuZXh0IHN0ZXAuPC9wPg0KPHA-4oCTIEFOTkE8L3A-PC9kaXY-PGJyPjxkaXYgY2xhc3M9ImdtYWlsX3F1b3RlIGdtYWlsX3F1b3RlX2NvbnRhaW5lciI-PGRpdiBkaXI9Imx0ciIgY2xhc3M9ImdtYWlsX2F0dHIiPk9uIFNhdCwgMTcgTWF5IDIwMjUgYXQgMTE6MzcsIEFubiBTaW5jbGFpciAmbHQ7PGEgaHJlZj0ibWFpbHRvOmFubnNpbmNsYWlyMzFAZ21haWwuY29tIj5hbm5zaW5jbGFpcjMxQGdtYWlsLmNvbTwvYT4mZ3Q7IHdyb3RlOjxicj48L2Rpdj48YmxvY2txdW90ZSBjbGFzcz0iZ21haWxfcXVvdGUiIHN0eWxlPSJtYXJnaW46MHB4IDBweCAwcHggMC44ZXg7Ym9yZGVyLWxlZnQ6MXB4IHNvbGlkIHJnYigyMDQsMjA0LDIwNCk7cGFkZGluZy1sZWZ0OjFleCI-PGRpdiBkaXI9Imx0ciI-PGRpdj48cD5IZXkge3tmaXJzdF9uYW1lfX0sPC9wPg0KPHA-VGhpc-KAmWxsIHNvdW5kIHN0cmFuZ2UsIGJ1dCBJIGJ1aWx0IHNvbWV0aGluZyB0aGF0IGZpeGVzIGEgcHJvYmxlbSB5b3UgcHJvYmFibHkgZm9yZ290IHlvdSYjMzk7cmUgc3RpbGwgZGVhbGluZyB3aXRoLjwvcD4NCjxwPkl0JiMzOTtzIGNhbGxlZCBbaW5zZXJ0IHByb2R1Y3QgbmFtZSBvciBrZWVwIGl0IHZhZ3VlXSwgYW5kIGl0IGhhbmRsZXMgW2luc2VydCBwYWluZnVsIHRhc2svZnJ1c3RyYXRpbmcgcHJvY2Vzc10gZm9yIHlvdS4gTm8gbW9yZSBbaW5zZXJ0IGFubm95aW5nIG91dGNvbWVdLCBubyBtb3JlIGJhYnlzaXR0aW5nLjwvcD4NCjxwPk5vIHBpdGNoLCBqdXN0IGN1cmlvdXMg4oCUIHdhbnQgdG8gc2VlIHdoYXQgaXQgbG9va3MgbGlrZT88L3A-DQo8cD7igJMgQW5uYTxicj4NCltPbmUtbGluZXIgYWJvdXQgd2hhdCBpdCBkb2VzIG9yIHlvdXIgY3JlZGliaWxpdHldPGJyPg0KUC5TLiBIYXBweSB0byBzZW5kIGEgcXVpY2sgMi1taW51dGUgdmlkZW8uPC9wPjwvZGl2PjxkaXY-PGJyPjwvZGl2PjxzcGFuIGNsYXNzPSJnbWFpbF9zaWduYXR1cmVfcHJlZml4Ij4tLSA8L3NwYW4-PGJyPjxkaXYgZGlyPSJsdHIiIGNsYXNzPSJnbWFpbF9zaWduYXR1cmUiPjxkaXYgZGlyPSJsdHIiPlRoYW5rcyw8ZGl2Pjxicj48L2Rpdj48ZGl2PkFubiBTaW5jbGFpcjwvZGl2PjxkaXY-Q2xpZW50IFN1Y2Nlc3MgTWFuYWdlcjwvZGl2PjxkaXY-PGJyPjwvZGl2PjxkaXY-PGltZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMzIiBzcmM9Imh0dHBzOi8vY2kzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9tYWlsLXNpZy9BSW9ySzR3ODJ2cTNrbHZqMGl3UTJQNi1iYVcxcjM1WFRENXBnSkdyYnB3Yzhma2QtbFVmUm81XzNqOTVuQW9LalZaMkNWY3lQLVItRXc0Ij48YnI-PC9kaXY-PGRpdj48YSBocmVmPSJodHRwOi8vd3d3LmR1aWxlYWRsYWIuY29tLyIgdGFyZ2V0PSJfYmxhbmsiPnd3dy5kdWlsZWFkbGFiLmNvbTwvYT48YnI-PC9kaXY-PGRpdj48YnI-PC9kaXY-PC9kaXY-PC9kaXY-PC9kaXY-DQo8L2Jsb2NrcXVvdGU-PC9kaXY-PGRpdj48YnIgY2xlYXI9ImFsbCI-PC9kaXY-PGRpdj48YnI-PC9kaXY-PHNwYW4gY2xhc3M9ImdtYWlsX3NpZ25hdHVyZV9wcmVmaXgiPi0tIDwvc3Bhbj48YnI-PGRpdiBkaXI9Imx0ciIgY2xhc3M9ImdtYWlsX3NpZ25hdHVyZSI-PGRpdiBkaXI9Imx0ciI-VGhhbmtzLDxkaXY-PGJyPjwvZGl2PjxkaXY-QW5uIFNpbmNsYWlyPC9kaXY-PGRpdj5DbGllbnQgU3VjY2VzcyBNYW5hZ2VyPC9kaXY-PGRpdj48YnI-PC9kaXY-PGRpdj48aW1nIHdpZHRoPSIyMDAiIGhlaWdodD0iMzMiIHNyYz0iaHR0cHM6Ly9jaTMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL21haWwtc2lnL0FJb3JLNHc4MnZxM2tsdmowaXdRMlA2LWJhVzFyMzVYVEQ1cGdKR3JicHdjOGZrZC1sVWZSbzVfM2o5NW5Bb0tqVloyQ1ZjeVAtUi1FdzQiPjxicj48L2Rpdj48ZGl2PjxhIGhyZWY9Imh0dHA6Ly93d3cuZHVpbGVhZGxhYi5jb20vIiB0YXJnZXQ9Il9ibGFuayI-d3d3LmR1aWxlYWRsYWIuY29tPC9hPjxicj48L2Rpdj48ZGl2Pjxicj48L2Rpdj48L2Rpdj48L2Rpdj4NCg=="
+                }
+              }
+            ]
+          },
+          "sizeEstimate": 4662,
+          "historyId": "24429",
+          "internalDate": "1747496383000",
+          "labels": [
+            {
+              "id": "SENT",
+              "name": "SENT"
+            }
+          ],
+          "MIME-Version": "1.0",
+          "Date": "Sat, 17 May 2025 11:39:43 -0400",
+          "References": "<CABr6b3Y4zis3nv3_d3gM_yQ5TT-ZVJEURb0ZEmXeR3xD6ZaWvA@mail.gmail.com>",
+          "In-Reply-To": "<CABr6b3Y4zis3nv3_d3gM_yQ5TT-ZVJEURb0ZEmXeR3xD6ZaWvA@mail.gmail.com>",
+          "Message-ID": "<CABr6b3YuKUqrE+e3PYP8GxuwR+rrGFVX2hcu9zuFdAXtMhgXVQ@mail.gmail.com>",
+          "Subject": "Re: EMAIL 1: This is weird, but it works.",
+          "From": "Ann Sinclair <annsinclair31@gmail.com>",
+          "To": "Jose Madarieta <jmadarieta3@gmail.com>",
+          "Content-Type": "multipart/alternative; boundary=\"0000000000002e4dfe063556b53a\""
+        }
+      },
+      {
+        "json": {
+          "id": "196dee7052cbfefd",
+          "threadId": "196dee463bf63aa2",
+          "snippet": "Yo {{first_name}}, Totally fine if now's not the time — just figured I'd check in one last time. If you ever get tired of [insert pain point again], this thing's still running quietly in",
+          "payload": {
+            "partId": "",
+            "mimeType": "multipart/alternative",
+            "filename": "",
+            "body": {
+              "size": 0
+            },
+            "parts": [
+              {
+                "partId": "0",
+                "mimeType": "text/plain",
+                "filename": "",
+                "headers": [
+                  {
+                    "name": "Content-Type",
+                    "value": "text/plain; charset=\"UTF-8\""
+                  },
+                  {
+                    "name": "Content-Transfer-Encoding",
+                    "value": "quoted-printable"
+                  }
+                ],
+                "body": {
+                  "size": 1857,
+                  "data": "WW8ge3tmaXJzdF9uYW1lfX0sDQoNClRvdGFsbHkgZmluZSBpZiBub3figJlzIG5vdCB0aGUgdGltZSDigJQganVzdCBmaWd1cmVkIEnigJlkIGNoZWNrIGluIG9uZSBsYXN0DQp0aW1lLg0KDQpJZiB5b3UgZXZlciBnZXQgdGlyZWQgb2YgW2luc2VydCBwYWluIHBvaW50IGFnYWluXSwgdGhpcyB0aGluZ-KAmXMgc3RpbGwNCnJ1bm5pbmcgcXVpZXRseSBpbiB0aGUgYmFja2dyb3VuZCBzb2x2aW5nIGl0IGZvciBmb2xrcyBsaWtlIHlvdS4NCg0KV2FudCBpbj8gSGl0IG1lIGJhY2sgYW5kIEnigJlsbCBtYWtlIGl0IHN0dXBpZCBzaW1wbGUuDQoNCklmIG5vdCwgSeKAmWxsIHNsaW5rIGF3YXkgaW50byB0aGUgc2hhZG93cyBsaWtlIGEgcG9saXRlIGxpdHRsZSBhdXRvbWF0aW9uDQpnb2JsaW4uDQoNCuKAkyBBbm5hDQrigJxCdWlsdCBmb3IgcGVvcGxlIHdobyBoYXRlIGJ1c3l3b3JrLuKAnQ0KDQpPbiBTYXQsIDE3IE1heSAyMDI1IGF0IDExOjM5LCBBbm4gU2luY2xhaXIgPGFubnNpbmNsYWlyMzFAZ21haWwuY29tPiB3cm90ZToNCg0KPiBIZXkge3tmaXJzdF9uYW1lfX0sDQo-DQo-IEhlcmXigJlzIHRoYXQgMi1taW4gZGVtbyBJIG1lbnRpb25lZC4NCj4g8J-RiSBbTGluayB0byBkZW1vLCBMb29tLCBzY3JlZW5zaG90LCB3aGF0ZXZlci5dDQo-DQo-IEl0IGJhc2ljYWxseSBkb2VzIGFsbCB0aGUgYm9yaW5nL3JlcGV0aXRpdmUgc2hpdCBzbyB5b3UgZG9u4oCZdCBoYXZlIHRvLiBJZg0KPiB5b3UgZXZlciBmZWVsIGxpa2UgeW91ciBbcHJvY2Vzcy90ZWFtL2luYm94L3Nhbml0eV0gaXMgb24gZmlyZSwgdGhpcyBmaXhlcw0KPiBpdC4NCj4NCj4gTGV0IG1lIGtub3cgaWYgeW91IHdhbnQgdG8ga2ljayB0aGUgdGlyZXMg4oCUIG9yIGp1c3QgcmVwbHkg4oCcaW50ZXJlc3RlZOKAnSBhbmQNCj4gSeKAmWxsIHNlbmQgeW91IHRoZSBuZXh0IHN0ZXAuDQo-DQo-IOKAkyBBTk5BDQo-DQo-IE9uIFNhdCwgMTcgTWF5IDIwMjUgYXQgMTE6MzcsIEFubiBTaW5jbGFpciA8YW5uc2luY2xhaXIzMUBnbWFpbC5jb20-DQo-IHdyb3RlOg0KPg0KPj4gSGV5IHt7Zmlyc3RfbmFtZX19LA0KPj4NCj4-IFRoaXPigJlsbCBzb3VuZCBzdHJhbmdlLCBidXQgSSBidWlsdCBzb21ldGhpbmcgdGhhdCBmaXhlcyBhIHByb2JsZW0geW91DQo-PiBwcm9iYWJseSBmb3Jnb3QgeW91J3JlIHN0aWxsIGRlYWxpbmcgd2l0aC4NCj4-DQo-PiBJdCdzIGNhbGxlZCBbaW5zZXJ0IHByb2R1Y3QgbmFtZSBvciBrZWVwIGl0IHZhZ3VlXSwgYW5kIGl0IGhhbmRsZXMNCj4-IFtpbnNlcnQgcGFpbmZ1bCB0YXNrL2ZydXN0cmF0aW5nIHByb2Nlc3NdIGZvciB5b3UuIE5vIG1vcmUgW2luc2VydCBhbm5veWluZw0KPj4gb3V0Y29tZV0sIG5vIG1vcmUgYmFieXNpdHRpbmcuDQo-Pg0KPj4gTm8gcGl0Y2gsIGp1c3QgY3VyaW91cyDigJQgd2FudCB0byBzZWUgd2hhdCBpdCBsb29rcyBsaWtlPw0KPj4NCj4-IOKAkyBBbm5hDQo-PiBbT25lLWxpbmVyIGFib3V0IHdoYXQgaXQgZG9lcyBvciB5b3VyIGNyZWRpYmlsaXR5XQ0KPj4gUC5TLiBIYXBweSB0byBzZW5kIGEgcXVpY2sgMi1taW51dGUgdmlkZW8uDQo-Pg0KPj4gLS0NCj4-IFRoYW5rcywNCj4-DQo-PiBBbm4gU2luY2xhaXINCj4-IENsaWVudCBTdWNjZXNzIE1hbmFnZXINCj4-DQo-Pg0KPj4gd3d3LmR1aWxlYWRsYWIuY29tDQo-Pg0KPj4NCj4NCj4gLS0NCj4gVGhhbmtzLA0KPg0KPiBBbm4gU2luY2xhaXINCj4gQ2xpZW50IFN1Y2Nlc3MgTWFuYWdlcg0KPg0KPg0KPiB3d3cuZHVpbGVhZGxhYi5jb20NCj4NCj4NCg0KLS0gDQpUaGFua3MsDQoNCkFubiBTaW5jbGFpcg0KQ2xpZW50IFN1Y2Nlc3MgTWFuYWdlcg0KDQoNCnd3dy5kdWlsZWFkbGFiLmNvbQ0K"
+                }
+              },
+              {
+                "partId": "1",
+                "mimeType": "text/html",
+                "filename": "",
+                "headers": [
+                  {
+                    "name": "Content-Type",
+                    "value": "text/html; charset=\"UTF-8\""
+                  },
+                  {
+                    "name": "Content-Transfer-Encoding",
+                    "value": "quoted-printable"
+                  }
+                ],
+                "body": {
+                  "size": 3793,
+                  "data": "PGRpdiBkaXI9Imx0ciI-PHA-WW8ge3tmaXJzdF9uYW1lfX0sPC9wPg0KPHA-VG90YWxseSBmaW5lIGlmIG5vd-KAmXMgbm90IHRoZSB0aW1lIOKAlCBqdXN0IGZpZ3VyZWQgSeKAmWQgY2hlY2sgaW4gb25lIGxhc3QgdGltZS48L3A-DQo8cD5JZiB5b3UgZXZlciBnZXQgdGlyZWQgb2YgW2luc2VydCBwYWluIHBvaW50IGFnYWluXSwgdGhpcyB0aGluZ-KAmXMgc3RpbGwgcnVubmluZyBxdWlldGx5IGluIHRoZSBiYWNrZ3JvdW5kIHNvbHZpbmcgaXQgZm9yIGZvbGtzIGxpa2UgeW91LjwvcD4NCjxwPldhbnQgaW4_IEhpdCBtZSBiYWNrIGFuZCBJ4oCZbGwgbWFrZSBpdCBzdHVwaWQgc2ltcGxlLjwvcD4NCjxwPklmIG5vdCwgSeKAmWxsIHNsaW5rIGF3YXkgaW50byB0aGUgc2hhZG93cyBsaWtlIGEgcG9saXRlIGxpdHRsZSBhdXRvbWF0aW9uIGdvYmxpbi48L3A-DQo8cD7igJMgQW5uYTxicj4NCuKAnEJ1aWx0IGZvciBwZW9wbGUgd2hvIGhhdGUgYnVzeXdvcmsu4oCdPC9wPjwvZGl2Pjxicj48ZGl2IGNsYXNzPSJnbWFpbF9xdW90ZSBnbWFpbF9xdW90ZV9jb250YWluZXIiPjxkaXYgZGlyPSJsdHIiIGNsYXNzPSJnbWFpbF9hdHRyIj5PbiBTYXQsIDE3IE1heSAyMDI1IGF0IDExOjM5LCBBbm4gU2luY2xhaXIgJmx0OzxhIGhyZWY9Im1haWx0bzphbm5zaW5jbGFpcjMxQGdtYWlsLmNvbSI-YW5uc2luY2xhaXIzMUBnbWFpbC5jb208L2E-Jmd0OyB3cm90ZTo8YnI-PC9kaXY-PGJsb2NrcXVvdGUgY2xhc3M9ImdtYWlsX3F1b3RlIiBzdHlsZT0ibWFyZ2luOjBweCAwcHggMHB4IDAuOGV4O2JvcmRlci1sZWZ0OjFweCBzb2xpZCByZ2IoMjA0LDIwNCwyMDQpO3BhZGRpbmctbGVmdDoxZXgiPjxkaXYgZGlyPSJsdHIiPjxwPkhleSB7e2ZpcnN0X25hbWV9fSw8L3A-DQo8cD5IZXJl4oCZcyB0aGF0IDItbWluIGRlbW8gSSBtZW50aW9uZWQuPGJyPg0K8J-RiSBbTGluayB0byBkZW1vLCBMb29tLCBzY3JlZW5zaG90LCB3aGF0ZXZlci5dPC9wPg0KPHA-SXQgYmFzaWNhbGx5IGRvZXMgYWxsIHRoZSBib3JpbmcvcmVwZXRpdGl2ZSBzaGl0IHNvIHlvdSBkb27igJl0IGhhdmUgdG8uIElmIHlvdSBldmVyIGZlZWwgbGlrZSB5b3VyIFtwcm9jZXNzL3RlYW0vaW5ib3gvc2FuaXR5XSBpcyBvbiBmaXJlLCB0aGlzIGZpeGVzIGl0LjwvcD4NCjxwPkxldCBtZSBrbm93IGlmIHlvdSB3YW50IHRvIGtpY2sgdGhlIHRpcmVzIOKAlCBvciBqdXN0IHJlcGx5IOKAnGludGVyZXN0ZWTigJ0gYW5kIEnigJlsbCBzZW5kIHlvdSB0aGUgbmV4dCBzdGVwLjwvcD4NCjxwPuKAkyBBTk5BPC9wPjwvZGl2Pjxicj48ZGl2IGNsYXNzPSJnbWFpbF9xdW90ZSI-PGRpdiBkaXI9Imx0ciIgY2xhc3M9ImdtYWlsX2F0dHIiPk9uIFNhdCwgMTcgTWF5IDIwMjUgYXQgMTE6MzcsIEFubiBTaW5jbGFpciAmbHQ7PGEgaHJlZj0ibWFpbHRvOmFubnNpbmNsYWlyMzFAZ21haWwuY29tIiB0YXJnZXQ9Il9ibGFuayI-YW5uc2luY2xhaXIzMUBnbWFpbC5jb208L2E-Jmd0OyB3cm90ZTo8YnI-PC9kaXY-PGJsb2NrcXVvdGUgY2xhc3M9ImdtYWlsX3F1b3RlIiBzdHlsZT0ibWFyZ2luOjBweCAwcHggMHB4IDAuOGV4O2JvcmRlci1sZWZ0OjFweCBzb2xpZCByZ2IoMjA0LDIwNCwyMDQpO3BhZGRpbmctbGVmdDoxZXgiPjxkaXYgZGlyPSJsdHIiPjxkaXY-PHA-SGV5IHt7Zmlyc3RfbmFtZX19LDwvcD4NCjxwPlRoaXPigJlsbCBzb3VuZCBzdHJhbmdlLCBidXQgSSBidWlsdCBzb21ldGhpbmcgdGhhdCBmaXhlcyBhIHByb2JsZW0geW91IHByb2JhYmx5IGZvcmdvdCB5b3UmIzM5O3JlIHN0aWxsIGRlYWxpbmcgd2l0aC48L3A-DQo8cD5JdCYjMzk7cyBjYWxsZWQgW2luc2VydCBwcm9kdWN0IG5hbWUgb3Iga2VlcCBpdCB2YWd1ZV0sIGFuZCBpdCBoYW5kbGVzIFtpbnNlcnQgcGFpbmZ1bCB0YXNrL2ZydXN0cmF0aW5nIHByb2Nlc3NdIGZvciB5b3UuIE5vIG1vcmUgW2luc2VydCBhbm5veWluZyBvdXRjb21lXSwgbm8gbW9yZSBiYWJ5c2l0dGluZy48L3A-DQo8cD5ObyBwaXRjaCwganVzdCBjdXJpb3VzIOKAlCB3YW50IHRvIHNlZSB3aGF0IGl0IGxvb2tzIGxpa2U_PC9wPg0KPHA-4oCTIEFubmE8YnI-DQpbT25lLWxpbmVyIGFib3V0IHdoYXQgaXQgZG9lcyBvciB5b3VyIGNyZWRpYmlsaXR5XTxicj4NClAuUy4gSGFwcHkgdG8gc2VuZCBhIHF1aWNrIDItbWludXRlIHZpZGVvLjwvcD48L2Rpdj48ZGl2Pjxicj48L2Rpdj48c3BhbiBjbGFzcz0iZ21haWxfc2lnbmF0dXJlX3ByZWZpeCI-LS0gPC9zcGFuPjxicj48ZGl2IGRpcj0ibHRyIiBjbGFzcz0iZ21haWxfc2lnbmF0dXJlIj48ZGl2IGRpcj0ibHRyIj5UaGFua3MsPGRpdj48YnI-PC9kaXY-PGRpdj5Bbm4gU2luY2xhaXI8L2Rpdj48ZGl2PkNsaWVudCBTdWNjZXNzIE1hbmFnZXI8L2Rpdj48ZGl2Pjxicj48L2Rpdj48ZGl2PjxpbWcgd2lkdGg9IjIwMCIgaGVpZ2h0PSIzMyIgc3JjPSJodHRwczovL2NpMy5nb29nbGV1c2VyY29udGVudC5jb20vbWFpbC1zaWcvQUlvcks0dzgydnEza2x2ajBpd1EyUDYtYmFXMXIzNVhURDVwZ0pHcmJwd2M4ZmtkLWxVZlJvNV8zajk1bkFvS2pWWjJDVmN5UC1SLUV3NCI-PGJyPjwvZGl2PjxkaXY-PGEgaHJlZj0iaHR0cDovL3d3dy5kdWlsZWFkbGFiLmNvbS8iIHRhcmdldD0iX2JsYW5rIj53d3cuZHVpbGVhZGxhYi5jb208L2E-PGJyPjwvZGl2PjxkaXY-PGJyPjwvZGl2PjwvZGl2PjwvZGl2PjwvZGl2Pg0KPC9ibG9ja3F1b3RlPjwvZGl2PjxkaXY-PGJyIGNsZWFyPSJhbGwiPjwvZGl2PjxkaXY-PGJyPjwvZGl2PjxzcGFuIGNsYXNzPSJnbWFpbF9zaWduYXR1cmVfcHJlZml4Ij4tLSA8L3NwYW4-PGJyPjxkaXYgZGlyPSJsdHIiIGNsYXNzPSJnbWFpbF9zaWduYXR1cmUiPjxkaXYgZGlyPSJsdHIiPlRoYW5rcyw8ZGl2Pjxicj48L2Rpdj48ZGl2PkFubiBTaW5jbGFpcjwvZGl2PjxkaXY-Q2xpZW50IFN1Y2Nlc3MgTWFuYWdlcjwvZGl2PjxkaXY-PGJyPjwvZGl2PjxkaXY-PGltZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMzIiBzcmM9Imh0dHBzOi8vY2kzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9tYWlsLXNpZy9BSW9ySzR3ODJ2cTNrbHZqMGl3UTJQNi1iYVcxcjM1WFRENXBnSkdyYnB3Yzhma2QtbFVmUm81XzNqOTVuQW9LalZaMkNWY3lQLVItRXc0Ij48YnI-PC9kaXY-PGRpdj48YSBocmVmPSJodHRwOi8vd3d3LmR1aWxlYWRsYWIuY29tLyIgdGFyZ2V0PSJfYmxhbmsiPnd3dy5kdWlsZWFkbGFiLmNvbTwvYT48YnI-PC9kaXY-PGRpdj48YnI-PC9kaXY-PC9kaXY-PC9kaXY-DQo8L2Jsb2NrcXVvdGU-PC9kaXY-PGRpdj48YnIgY2xlYXI9ImFsbCI-PC9kaXY-PGRpdj48YnI-PC9kaXY-PHNwYW4gY2xhc3M9ImdtYWlsX3NpZ25hdHVyZV9wcmVmaXgiPi0tIDwvc3Bhbj48YnI-PGRpdiBkaXI9Imx0ciIgY2xhc3M9ImdtYWlsX3NpZ25hdHVyZSI-PGRpdiBkaXI9Imx0ciI-VGhhbmtzLDxkaXY-PGJyPjwvZGl2PjxkaXY-QW5uIFNpbmNsYWlyPC9kaXY-PGRpdj5DbGllbnQgU3VjY2VzcyBNYW5hZ2VyPC9kaXY-PGRpdj48YnI-PC9kaXY-PGRpdj48aW1nIHdpZHRoPSIyMDAiIGhlaWdodD0iMzMiIHNyYz0iaHR0cHM6Ly9jaTMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL21haWwtc2lnL0FJb3JLNHc4MnZxM2tsdmowaXdRMlA2LWJhVzFyMzVYVEQ1cGdKR3JicHdjOGZrZC1sVWZSbzVfM2o5NW5Bb0tqVloyQ1ZjeVAtUi1FdzQiPjxicj48L2Rpdj48ZGl2PjxhIGhyZWY9Imh0dHA6Ly93d3cuZHVpbGVhZGxhYi5jb20vIiB0YXJnZXQ9Il9ibGFuayI-d3d3LmR1aWxlYWRsYWIuY29tPC9hPjxicj48L2Rpdj48ZGl2Pjxicj48L2Rpdj48L2Rpdj48L2Rpdj4NCg=="
+                }
+              }
+            ]
+          },
+          "sizeEstimate": 7010,
+          "historyId": "24429",
+          "internalDate": "1747496403000",
+          "labels": [
+            {
+              "id": "SENT",
+              "name": "SENT"
+            }
+          ],
+          "MIME-Version": "1.0",
+          "Date": "Sat, 17 May 2025 11:40:03 -0400",
+          "References": "<CABr6b3Y4zis3nv3_d3gM_yQ5TT-ZVJEURb0ZEmXeR3xD6ZaWvA@mail.gmail.com> <CABr6b3YuKUqrE+e3PYP8GxuwR+rrGFVX2hcu9zuFdAXtMhgXVQ@mail.gmail.com>",
+          "In-Reply-To": "<CABr6b3YuKUqrE+e3PYP8GxuwR+rrGFVX2hcu9zuFdAXtMhgXVQ@mail.gmail.com>",
+          "Message-ID": "<CABr6b3bj71Lbniyn+bveRji9wWcDrT71_v=ViP1r=KLE0F89tw@mail.gmail.com>",
+          "Subject": "Re: EMAIL 1: This is weird, but it works.",
+          "From": "Ann Sinclair <annsinclair31@gmail.com>",
+          "To": "Jose Madarieta <jmadarieta3@gmail.com>",
+          "Content-Type": "multipart/alternative; boundary=\"0000000000006c2a2e063556b6d3\""
+        }
+      },
+      {
+        "json": {
+          "id": "196dee809d5182e0",
+          "threadId": "196dee463bf63aa2",
+          "snippet": "no plz, dont ghost me. i wanna buy your stuff. lets meet On Sat, May 17, 2025 at 11:40 AM Ann Sinclair <annsinclair31@gmail.com> wrote: Yo {{first_name}}, Totally fine if now's not the time —",
+          "payload": {
+            "partId": "",
+            "mimeType": "multipart/alternative",
+            "filename": "",
+            "body": {
+              "size": 0
+            },
+            "parts": [
+              {
+                "partId": "0",
+                "mimeType": "text/plain",
+                "filename": "",
+                "headers": [
+                  {
+                    "name": "Content-Type",
+                    "value": "text/plain; charset=\"UTF-8\""
+                  },
+                  {
+                    "name": "Content-Transfer-Encoding",
+                    "value": "quoted-printable"
+                  }
+                ],
+                "body": {
+                  "size": 2106,
+                  "data": "bm8gcGx6LCBkb250IGdob3N0IG1lLiBpIHdhbm5hIGJ1eSB5b3VyIHN0dWZmLiBsZXRzIG1lZXQNCg0KT24gU2F0LCBNYXkgMTcsIDIwMjUgYXQgMTE6NDDigK9BTSBBbm4gU2luY2xhaXIgPGFubnNpbmNsYWlyMzFAZ21haWwuY29tPg0Kd3JvdGU6DQoNCj4gWW8ge3tmaXJzdF9uYW1lfX0sDQo-DQo-IFRvdGFsbHkgZmluZSBpZiBub3figJlzIG5vdCB0aGUgdGltZSDigJQganVzdCBmaWd1cmVkIEnigJlkIGNoZWNrIGluIG9uZSBsYXN0DQo-IHRpbWUuDQo-DQo-IElmIHlvdSBldmVyIGdldCB0aXJlZCBvZiBbaW5zZXJ0IHBhaW4gcG9pbnQgYWdhaW5dLCB0aGlzIHRoaW5n4oCZcyBzdGlsbA0KPiBydW5uaW5nIHF1aWV0bHkgaW4gdGhlIGJhY2tncm91bmQgc29sdmluZyBpdCBmb3IgZm9sa3MgbGlrZSB5b3UuDQo-DQo-IFdhbnQgaW4_IEhpdCBtZSBiYWNrIGFuZCBJ4oCZbGwgbWFrZSBpdCBzdHVwaWQgc2ltcGxlLg0KPg0KPiBJZiBub3QsIEnigJlsbCBzbGluayBhd2F5IGludG8gdGhlIHNoYWRvd3MgbGlrZSBhIHBvbGl0ZSBsaXR0bGUgYXV0b21hdGlvbg0KPiBnb2JsaW4uDQo-DQo-IOKAkyBBbm5hDQo-IOKAnEJ1aWx0IGZvciBwZW9wbGUgd2hvIGhhdGUgYnVzeXdvcmsu4oCdDQo-DQo-IE9uIFNhdCwgMTcgTWF5IDIwMjUgYXQgMTE6MzksIEFubiBTaW5jbGFpciA8YW5uc2luY2xhaXIzMUBnbWFpbC5jb20-DQo-IHdyb3RlOg0KPg0KPj4gSGV5IHt7Zmlyc3RfbmFtZX19LA0KPj4NCj4-IEhlcmXigJlzIHRoYXQgMi1taW4gZGVtbyBJIG1lbnRpb25lZC4NCj4-IPCfkYkgW0xpbmsgdG8gZGVtbywgTG9vbSwgc2NyZWVuc2hvdCwgd2hhdGV2ZXIuXQ0KPj4NCj4-IEl0IGJhc2ljYWxseSBkb2VzIGFsbCB0aGUgYm9yaW5nL3JlcGV0aXRpdmUgc2hpdCBzbyB5b3UgZG9u4oCZdCBoYXZlIHRvLiBJZg0KPj4geW91IGV2ZXIgZmVlbCBsaWtlIHlvdXIgW3Byb2Nlc3MvdGVhbS9pbmJveC9zYW5pdHldIGlzIG9uIGZpcmUsIHRoaXMgZml4ZXMNCj4-IGl0Lg0KPj4NCj4-IExldCBtZSBrbm93IGlmIHlvdSB3YW50IHRvIGtpY2sgdGhlIHRpcmVzIOKAlCBvciBqdXN0IHJlcGx5IOKAnGludGVyZXN0ZWTigJ0NCj4-IGFuZCBJ4oCZbGwgc2VuZCB5b3UgdGhlIG5leHQgc3RlcC4NCj4-DQo-PiDigJMgQU5OQQ0KPj4NCj4-IE9uIFNhdCwgMTcgTWF5IDIwMjUgYXQgMTE6MzcsIEFubiBTaW5jbGFpciA8YW5uc2luY2xhaXIzMUBnbWFpbC5jb20-DQo-PiB3cm90ZToNCj4-DQo-Pj4gSGV5IHt7Zmlyc3RfbmFtZX19LA0KPj4-DQo-Pj4gVGhpc-KAmWxsIHNvdW5kIHN0cmFuZ2UsIGJ1dCBJIGJ1aWx0IHNvbWV0aGluZyB0aGF0IGZpeGVzIGEgcHJvYmxlbSB5b3UNCj4-PiBwcm9iYWJseSBmb3Jnb3QgeW91J3JlIHN0aWxsIGRlYWxpbmcgd2l0aC4NCj4-Pg0KPj4-IEl0J3MgY2FsbGVkIFtpbnNlcnQgcHJvZHVjdCBuYW1lIG9yIGtlZXAgaXQgdmFndWVdLCBhbmQgaXQgaGFuZGxlcw0KPj4-IFtpbnNlcnQgcGFpbmZ1bCB0YXNrL2ZydXN0cmF0aW5nIHByb2Nlc3NdIGZvciB5b3UuIE5vIG1vcmUgW2luc2VydCBhbm5veWluZw0KPj4-IG91dGNvbWVdLCBubyBtb3JlIGJhYnlzaXR0aW5nLg0KPj4-DQo-Pj4gTm8gcGl0Y2gsIGp1c3QgY3VyaW91cyDigJQgd2FudCB0byBzZWUgd2hhdCBpdCBsb29rcyBsaWtlPw0KPj4-DQo-Pj4g4oCTIEFubmENCj4-PiBbT25lLWxpbmVyIGFib3V0IHdoYXQgaXQgZG9lcyBvciB5b3VyIGNyZWRpYmlsaXR5XQ0KPj4-IFAuUy4gSGFwcHkgdG8gc2VuZCBhIHF1aWNrIDItbWludXRlIHZpZGVvLg0KPj4-DQo-Pj4gLS0NCj4-PiBUaGFua3MsDQo-Pj4NCj4-PiBBbm4gU2luY2xhaXINCj4-PiBDbGllbnQgU3VjY2VzcyBNYW5hZ2VyDQo-Pj4NCj4-Pg0KPj4-IHd3dy5kdWlsZWFkbGFiLmNvbQ0KPj4-DQo-Pj4NCj4-DQo-PiAtLQ0KPj4gVGhhbmtzLA0KPj4NCj4-IEFubiBTaW5jbGFpcg0KPj4gQ2xpZW50IFN1Y2Nlc3MgTWFuYWdlcg0KPj4NCj4-DQo-PiB3d3cuZHVpbGVhZGxhYi5jb20NCj4-DQo-Pg0KPg0KPiAtLQ0KPiBUaGFua3MsDQo-DQo-IEFubiBTaW5jbGFpcg0KPiBDbGllbnQgU3VjY2VzcyBNYW5hZ2VyDQo-DQo-DQo-IHd3dy5kdWlsZWFkbGFiLmNvbQ0KPg0KPg0K"
+                }
+              },
+              {
+                "partId": "1",
+                "mimeType": "text/html",
+                "filename": "",
+                "headers": [
+                  {
+                    "name": "Content-Type",
+                    "value": "text/html; charset=\"UTF-8\""
+                  },
+                  {
+                    "name": "Content-Transfer-Encoding",
+                    "value": "quoted-printable"
+                  }
+                ],
+                "body": {
+                  "size": 4232,
+                  "data": "PGRpdiBkaXI9Imx0ciI-bm8gcGx6LCBkb250IGdob3N0IG1lLiBpIHdhbm5hIGJ1eSB5b3VyIHN0dWZmLiBsZXRzIG1lZXQ8L2Rpdj48YnI-PGRpdiBjbGFzcz0iZ21haWxfcXVvdGUgZ21haWxfcXVvdGVfY29udGFpbmVyIj48ZGl2IGRpcj0ibHRyIiBjbGFzcz0iZ21haWxfYXR0ciI-T24gU2F0LCBNYXkgMTcsIDIwMjUgYXQgMTE6NDDigK9BTSBBbm4gU2luY2xhaXIgJmx0OzxhIGhyZWY9Im1haWx0bzphbm5zaW5jbGFpcjMxQGdtYWlsLmNvbSI-YW5uc2luY2xhaXIzMUBnbWFpbC5jb208L2E-Jmd0OyB3cm90ZTo8YnI-PC9kaXY-PGJsb2NrcXVvdGUgY2xhc3M9ImdtYWlsX3F1b3RlIiBzdHlsZT0ibWFyZ2luOjBweCAwcHggMHB4IDAuOGV4O2JvcmRlci1sZWZ0OjFweCBzb2xpZCByZ2IoMjA0LDIwNCwyMDQpO3BhZGRpbmctbGVmdDoxZXgiPjxkaXYgZGlyPSJsdHIiPjxwPllvIHt7Zmlyc3RfbmFtZX19LDwvcD4NCjxwPlRvdGFsbHkgZmluZSBpZiBub3figJlzIG5vdCB0aGUgdGltZSDigJQganVzdCBmaWd1cmVkIEnigJlkIGNoZWNrIGluIG9uZSBsYXN0IHRpbWUuPC9wPg0KPHA-SWYgeW91IGV2ZXIgZ2V0IHRpcmVkIG9mIFtpbnNlcnQgcGFpbiBwb2ludCBhZ2Fpbl0sIHRoaXMgdGhpbmfigJlzIHN0aWxsIHJ1bm5pbmcgcXVpZXRseSBpbiB0aGUgYmFja2dyb3VuZCBzb2x2aW5nIGl0IGZvciBmb2xrcyBsaWtlIHlvdS48L3A-DQo8cD5XYW50IGluPyBIaXQgbWUgYmFjayBhbmQgSeKAmWxsIG1ha2UgaXQgc3R1cGlkIHNpbXBsZS48L3A-DQo8cD5JZiBub3QsIEnigJlsbCBzbGluayBhd2F5IGludG8gdGhlIHNoYWRvd3MgbGlrZSBhIHBvbGl0ZSBsaXR0bGUgYXV0b21hdGlvbiBnb2JsaW4uPC9wPg0KPHA-4oCTIEFubmE8YnI-DQrigJxCdWlsdCBmb3IgcGVvcGxlIHdobyBoYXRlIGJ1c3l3b3JrLuKAnTwvcD48L2Rpdj48YnI-PGRpdiBjbGFzcz0iZ21haWxfcXVvdGUiPjxkaXYgZGlyPSJsdHIiIGNsYXNzPSJnbWFpbF9hdHRyIj5PbiBTYXQsIDE3IE1heSAyMDI1IGF0IDExOjM5LCBBbm4gU2luY2xhaXIgJmx0OzxhIGhyZWY9Im1haWx0bzphbm5zaW5jbGFpcjMxQGdtYWlsLmNvbSIgdGFyZ2V0PSJfYmxhbmsiPmFubnNpbmNsYWlyMzFAZ21haWwuY29tPC9hPiZndDsgd3JvdGU6PGJyPjwvZGl2PjxibG9ja3F1b3RlIGNsYXNzPSJnbWFpbF9xdW90ZSIgc3R5bGU9Im1hcmdpbjowcHggMHB4IDBweCAwLjhleDtib3JkZXItbGVmdDoxcHggc29saWQgcmdiKDIwNCwyMDQsMjA0KTtwYWRkaW5nLWxlZnQ6MWV4Ij48ZGl2IGRpcj0ibHRyIj48cD5IZXkge3tmaXJzdF9uYW1lfX0sPC9wPg0KPHA-SGVyZeKAmXMgdGhhdCAyLW1pbiBkZW1vIEkgbWVudGlvbmVkLjxicj4NCvCfkYkgW0xpbmsgdG8gZGVtbywgTG9vbSwgc2NyZWVuc2hvdCwgd2hhdGV2ZXIuXTwvcD4NCjxwPkl0IGJhc2ljYWxseSBkb2VzIGFsbCB0aGUgYm9yaW5nL3JlcGV0aXRpdmUgc2hpdCBzbyB5b3UgZG9u4oCZdCBoYXZlIHRvLiBJZiB5b3UgZXZlciBmZWVsIGxpa2UgeW91ciBbcHJvY2Vzcy90ZWFtL2luYm94L3Nhbml0eV0gaXMgb24gZmlyZSwgdGhpcyBmaXhlcyBpdC48L3A-DQo8cD5MZXQgbWUga25vdyBpZiB5b3Ugd2FudCB0byBraWNrIHRoZSB0aXJlcyDigJQgb3IganVzdCByZXBseSDigJxpbnRlcmVzdGVk4oCdIGFuZCBJ4oCZbGwgc2VuZCB5b3UgdGhlIG5leHQgc3RlcC48L3A-DQo8cD7igJMgQU5OQTwvcD48L2Rpdj48YnI-PGRpdiBjbGFzcz0iZ21haWxfcXVvdGUiPjxkaXYgZGlyPSJsdHIiIGNsYXNzPSJnbWFpbF9hdHRyIj5PbiBTYXQsIDE3IE1heSAyMDI1IGF0IDExOjM3LCBBbm4gU2luY2xhaXIgJmx0OzxhIGhyZWY9Im1haWx0bzphbm5zaW5jbGFpcjMxQGdtYWlsLmNvbSIgdGFyZ2V0PSJfYmxhbmsiPmFubnNpbmNsYWlyMzFAZ21haWwuY29tPC9hPiZndDsgd3JvdGU6PGJyPjwvZGl2PjxibG9ja3F1b3RlIGNsYXNzPSJnbWFpbF9xdW90ZSIgc3R5bGU9Im1hcmdpbjowcHggMHB4IDBweCAwLjhleDtib3JkZXItbGVmdDoxcHggc29saWQgcmdiKDIwNCwyMDQsMjA0KTtwYWRkaW5nLWxlZnQ6MWV4Ij48ZGl2IGRpcj0ibHRyIj48ZGl2PjxwPkhleSB7e2ZpcnN0X25hbWV9fSw8L3A-DQo8cD5UaGlz4oCZbGwgc291bmQgc3RyYW5nZSwgYnV0IEkgYnVpbHQgc29tZXRoaW5nIHRoYXQgZml4ZXMgYSBwcm9ibGVtIHlvdSBwcm9iYWJseSBmb3Jnb3QgeW91JiMzOTtyZSBzdGlsbCBkZWFsaW5nIHdpdGguPC9wPg0KPHA-SXQmIzM5O3MgY2FsbGVkIFtpbnNlcnQgcHJvZHVjdCBuYW1lIG9yIGtlZXAgaXQgdmFndWVdLCBhbmQgaXQgaGFuZGxlcyBbaW5zZXJ0IHBhaW5mdWwgdGFzay9mcnVzdHJhdGluZyBwcm9jZXNzXSBmb3IgeW91LiBObyBtb3JlIFtpbnNlcnQgYW5ub3lpbmcgb3V0Y29tZV0sIG5vIG1vcmUgYmFieXNpdHRpbmcuPC9wPg0KPHA-Tm8gcGl0Y2gsIGp1c3QgY3VyaW91cyDigJQgd2FudCB0byBzZWUgd2hhdCBpdCBsb29rcyBsaWtlPzwvcD4NCjxwPuKAkyBBbm5hPGJyPg0KW09uZS1saW5lciBhYm91dCB3aGF0IGl0IGRvZXMgb3IgeW91ciBjcmVkaWJpbGl0eV08YnI-DQpQLlMuIEhhcHB5IHRvIHNlbmQgYSBxdWljayAyLW1pbnV0ZSB2aWRlby48L3A-PC9kaXY-PGRpdj48YnI-PC9kaXY-PHNwYW4gY2xhc3M9ImdtYWlsX3NpZ25hdHVyZV9wcmVmaXgiPi0tIDwvc3Bhbj48YnI-PGRpdiBkaXI9Imx0ciIgY2xhc3M9ImdtYWlsX3NpZ25hdHVyZSI-PGRpdiBkaXI9Imx0ciI-VGhhbmtzLDxkaXY-PGJyPjwvZGl2PjxkaXY-QW5uIFNpbmNsYWlyPC9kaXY-PGRpdj5DbGllbnQgU3VjY2VzcyBNYW5hZ2VyPC9kaXY-PGRpdj48YnI-PC9kaXY-PGRpdj48aW1nIHdpZHRoPSIyMDAiIGhlaWdodD0iMzMiIHNyYz0iaHR0cHM6Ly9jaTMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL21haWwtc2lnL0FJb3JLNHc4MnZxM2tsdmowaXdRMlA2LWJhVzFyMzVYVEQ1cGdKR3JicHdjOGZrZC1sVWZSbzVfM2o5NW5Bb0tqVloyQ1ZjeVAtUi1FdzQiPjxicj48L2Rpdj48ZGl2PjxhIGhyZWY9Imh0dHA6Ly93d3cuZHVpbGVhZGxhYi5jb20vIiB0YXJnZXQ9Il9ibGFuayI-d3d3LmR1aWxlYWRsYWIuY29tPC9hPjxicj48L2Rpdj48ZGl2Pjxicj48L2Rpdj48L2Rpdj48L2Rpdj48L2Rpdj4NCjwvYmxvY2txdW90ZT48L2Rpdj48ZGl2PjxiciBjbGVhcj0iYWxsIj48L2Rpdj48ZGl2Pjxicj48L2Rpdj48c3BhbiBjbGFzcz0iZ21haWxfc2lnbmF0dXJlX3ByZWZpeCI-LS0gPC9zcGFuPjxicj48ZGl2IGRpcj0ibHRyIiBjbGFzcz0iZ21haWxfc2lnbmF0dXJlIj48ZGl2IGRpcj0ibHRyIj5UaGFua3MsPGRpdj48YnI-PC9kaXY-PGRpdj5Bbm4gU2luY2xhaXI8L2Rpdj48ZGl2PkNsaWVudCBTdWNjZXNzIE1hbmFnZXI8L2Rpdj48ZGl2Pjxicj48L2Rpdj48ZGl2PjxpbWcgd2lkdGg9IjIwMCIgaGVpZ2h0PSIzMyIgc3JjPSJodHRwczovL2NpMy5nb29nbGV1c2VyY29udGVudC5jb20vbWFpbC1zaWcvQUlvcks0dzgydnEza2x2ajBpd1EyUDYtYmFXMXIzNVhURDVwZ0pHcmJwd2M4ZmtkLWxVZlJvNV8zajk1bkFvS2pWWjJDVmN5UC1SLUV3NCI-PGJyPjwvZGl2PjxkaXY-PGEgaHJlZj0iaHR0cDovL3d3dy5kdWlsZWFkbGFiLmNvbS8iIHRhcmdldD0iX2JsYW5rIj53d3cuZHVpbGVhZGxhYi5jb208L2E-PGJyPjwvZGl2PjxkaXY-PGJyPjwvZGl2PjwvZGl2PjwvZGl2Pg0KPC9ibG9ja3F1b3RlPjwvZGl2PjxkaXY-PGJyIGNsZWFyPSJhbGwiPjwvZGl2PjxkaXY-PGJyPjwvZGl2PjxzcGFuIGNsYXNzPSJnbWFpbF9zaWduYXR1cmVfcHJlZml4Ij4tLSA8L3NwYW4-PGJyPjxkaXYgZGlyPSJsdHIiIGNsYXNzPSJnbWFpbF9zaWduYXR1cmUiPjxkaXYgZGlyPSJsdHIiPlRoYW5rcyw8ZGl2Pjxicj48L2Rpdj48ZGl2PkFubiBTaW5jbGFpcjwvZGl2PjxkaXY-Q2xpZW50IFN1Y2Nlc3MgTWFuYWdlcjwvZGl2PjxkaXY-PGJyPjwvZGl2PjxkaXY-PGltZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMzIiBzcmM9Imh0dHBzOi8vY2kzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9tYWlsLXNpZy9BSW9ySzR3ODJ2cTNrbHZqMGl3UTJQNi1iYVcxcjM1WFRENXBnSkdyYnB3Yzhma2QtbFVmUm81XzNqOTVuQW9LalZaMkNWY3lQLVItRXc0Ij48YnI-PC9kaXY-PGRpdj48YSBocmVmPSJodHRwOi8vd3d3LmR1aWxlYWRsYWIuY29tLyIgdGFyZ2V0PSJfYmxhbmsiPnd3dy5kdWlsZWFkbGFiLmNvbTwvYT48YnI-PC9kaXY-PGRpdj48YnI-PC9kaXY-PC9kaXY-PC9kaXY-DQo8L2Jsb2NrcXVvdGU-PC9kaXY-DQo="
+                }
+              }
+            ]
+          },
+          "sizeEstimate": 12902,
+          "historyId": "24429",
+          "internalDate": "1747496458000",
+          "labels": [
+            {
+              "id": "INBOX",
+              "name": "INBOX"
+            },
+            {
+              "id": "IMPORTANT",
+              "name": "IMPORTANT"
+            },
+            {
+              "id": "CATEGORY_PERSONAL",
+              "name": "CATEGORY_PERSONAL"
+            }
+          ],
+          "Delivered-To": "annsinclair31@gmail.com",
+          "Received": "from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])        by mx.google.com with SMTPS id 6a1803df08f44-6f8b0964b86sor33053656d6.4.2025.05.17.08.41.10        for <annsinclair31@gmail.com>        (Google Transport Security);        Sat, 17 May 2025 08:41:10 -0700 (PDT)",
+          "X-Received": "by 2002:ad4:5bc9:0:b0:6f8:c773:26e with SMTP id 6a1803df08f44-6f8c7730babmr29971966d6.18.1747496469941; Sat, 17 May 2025 08:41:09 -0700 (PDT)",
+          "ARC-Seal": "i=1; a=rsa-sha256; t=1747496470; cv=none;        d=google.com; s=arc-20240605;        b=KXWGdeOUkKDKgSacib6MFfm9hJHJCPS94U1Fx/vf5tirV/pM4G+V06M3oPcSkc4fbh         RF8glWa6xpmvIcHOYQbv6CgBVZQDLjsMWk749/o+jgyqLj3l1y01CiLPTFbgiC/jjbSc         mwVE8ksTqIRFG2cYPUjaxJjvB8rzxpjO+SqJlPAO8gbpzEkokaG3cF0rkQ19ZOXKuuVu         oO0lnES7XsJ34QlCDeQ2C+5kMl0hC6eOh9T9FAhTUCBMxm0lw/E8pgJt9+csjJ29MCNz         xWkQxi14BteNM29k6I8/ftPSWo/teatSBzB0sGPpuH3ef2CyRpreGruBK5m0u9vHYd4W         MjXQ==",
+          "ARC-Message-Signature": "i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;        h=to:subject:message-id:date:from:in-reply-to:references:mime-version         :dkim-signature;        bh=GYq/l3DF4iaQlK7cv0fS6pOqwNOP525BiRibcoDdcgw=;        fh=uBLAvRazCM8TkXCLzrzOTvz5NxXF7JfgjuvZyNSpkfc=;        b=McBMbZggBrgIp0gkSJzkDIMvuwp5atjrHjZ4pfYmL7uSPy9ZieEm9kq4VF6vLBzDwS         hUtkEXWCqq+PAEVWvC5wzvQSnf38kuSAFySVz08Uygusg44OuDC+dc6jqbhRiUYXnAxX         7R/PyM/vqciBZGssVA+cjQGaKTOJG6UeMSSOndg/Go9G5sjXH9tARi61uguJx/J4f4M1         O/ixB081uxb4MIo+wsvwzBa916POsVtssU1T7kDgt4/ZPv/4iM10tGjjDKzp8xUtqwDT         jd1gl0Fxq/DBLo522iKZGnwz8O4kGXdbFk2c8NuUzWzpQCsW2zJfyuEyD6H1XZk5wOtq         v93w==;        dara=google.com",
+          "ARC-Authentication-Results": "i=1; mx.google.com;       dkim=pass header.i=@gmail.com header.s=20230601 header.b=QfCE042E;       spf=pass (google.com: domain of jmadarieta3@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=jmadarieta3@gmail.com;       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;       dara=pass header.i=@gmail.com",
+          "Return-Path": "<jmadarieta3@gmail.com>",
+          "Received-SPF": "pass (google.com: domain of jmadarieta3@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;",
+          "Authentication-Results": "mx.google.com;       dkim=pass header.i=@gmail.com header.s=20230601 header.b=QfCE042E;       spf=pass (google.com: domain of jmadarieta3@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=jmadarieta3@gmail.com;       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;       dara=pass header.i=@gmail.com",
+          "DKIM-Signature": "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=gmail.com; s=20230601; t=1747496470; x=1748101270; dara=google.com;        h=to:subject:message-id:date:from:in-reply-to:references:mime-version         :from:to:cc:subject:date:message-id:reply-to;        bh=GYq/l3DF4iaQlK7cv0fS6pOqwNOP525BiRibcoDdcgw=;        b=QfCE042ECAjCzvJziWC330mxfWuoxLISX5ewGf4lFa8n+mOc57lGCVX380GvCxzryc         eB60lpgp0MEXUG19l3Gz3TEjDIDUaMjewXd2s0ksb4R2AbRcDb11rpVHKRRbmMcHZkSP         l2+68S55Cpg8AS9GsyaQXAjwCAwuz1xn5jI0l4mE5sg+R/85afyTz1YvnskULr1geZkP         jVU1w218XaWJj8O9Npqke9H0iqbJMRgINasmZBR1nIuak0WXooZEzHjirRpsXMSCTqWu         9cRG7eNXajzuqN9CiyBt7IggpzjpivdFbFCLtter4KrwaMzUBGDb9NnlDOC5pPZPnlKx         pCFw==",
+          "X-Google-DKIM-Signature": "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=1e100.net; s=20230601; t=1747496470; x=1748101270;        h=to:subject:message-id:date:from:in-reply-to:references:mime-version         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;        bh=GYq/l3DF4iaQlK7cv0fS6pOqwNOP525BiRibcoDdcgw=;        b=A3855B173FSAjKRG5Nh+yd4OsALn79HD6xVoYbjaLiuC3hKg0AfUUiJc95OGXPtCcn         DVkRf+0FpI66d1e9ORn/KNbVMXcf7JaCK31xe0xmDkSCiFiedWBSkj2pptOSItkzHBYU         SRZvU9SkRiJgxeuJm98O1CtYNTHqEMqeWHMdAJNn3qPcTyDadL7Btl9YU/jOP7P8g9ih         PZP4kZ6DtEh/1nsIyNmzZ1q6sF+nnB7iVsdJgqaTXIclFneFyvLi/GO4IJgtfwn4seHK         cAPSSSVeswANMB4Q4rMP0lCCMRoUZwlxH6b4TE4+4aOIcvK6qWWF9zQ8J7jXTgeXp4hy         RsEg==",
+          "X-Gm-Message-State": "AOJu0YygrJVabKiIsjmzk5yZhR9KOrfoUFc73+EH2GWffFbABzourMSP gDmEFgzuA+akWC4n/AqAugbPorfIg6D9SFIbaTE3rnoicj+SObqTkoO8sunea+GcRpkvqVxzCxC Om6o8nbUP1pQ4ns7jqc4Myf2TLUtWwyMQD89r",
+          "X-Gm-Gg": "ASbGnctirQwL8g5Gmoah37Y+fDj84X3/4ERprtr2hJybQh17pptvVTyMawA1enllPtC eN4ycRQ47pZjPc044kH5Xhm4ZnuB5FzJRxp6K/SyLsG+18SJr7MouUnj0ClzLxUDZJXJkGTw4Uy kWRsUt/XT8DK0Oe/tZej0A13m9MSpGs1+9etwgaC7gBBAW2u0IexxrTVzsaxo7/+4ykg==",
+          "X-Google-Smtp-Source": "AGHT+IFTHVnoAD78pilumhGpT7Fx2j0fQO6BkkEFiuKNFYIcdDyM9B4i0WYxb9OpFiUDRdAzFZPGGjBEgdF65M/6RFI=",
+          "MIME-Version": "1.0",
+          "References": "<CABr6b3Y4zis3nv3_d3gM_yQ5TT-ZVJEURb0ZEmXeR3xD6ZaWvA@mail.gmail.com> <CABr6b3YuKUqrE+e3PYP8GxuwR+rrGFVX2hcu9zuFdAXtMhgXVQ@mail.gmail.com> <CABr6b3bj71Lbniyn+bveRji9wWcDrT71_v=ViP1r=KLE0F89tw@mail.gmail.com>",
+          "In-Reply-To": "<CABr6b3bj71Lbniyn+bveRji9wWcDrT71_v=ViP1r=KLE0F89tw@mail.gmail.com>",
+          "From": "Jose Madarieta <jmadarieta3@gmail.com>",
+          "Date": "Sat, 17 May 2025 11:40:58 -0400",
+          "X-Gm-Features": "AX0GCFvw2ubH1QbXnp7UDowNNyUNVT0yD5sBZpkOaanZZYPsLGsyUzwGA0CzYio",
+          "Message-ID": "<CAFTVrRrfRJ+PzCh5y8hGsBSNRXcp0u6xjDxUaPJja3B=6cPOrg@mail.gmail.com>",
+          "Subject": "Re: EMAIL 1: This is weird, but it works.",
+          "To": "Ann Sinclair <annsinclair31@gmail.com>",
+          "Content-Type": "multipart/alternative; boundary=\"000000000000565442063556babe\""
+        }
+      }
+    ],
+    "Sales Email? ": [
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n\"decision\": \"Sales\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      }
+    ],
+    "Reformat Emails": [
+      {
+        "json": {
+          "output": {
+            "newProspectEmail": "i wanna book a meeting",
+            "previousEmails": "- Ann Sinclair introduced a product designed to fix a persistent pain point, offering to show a 2-minute video demonstration with no pitch.\n- Followed up with a 2-minute demo link, emphasizing how the product automates boring and repetitive tasks to reduce stress and improve process management.\n- Sent a last check-in email offering an easy way to get started, positioning the product as a quiet solution running in the background for those tired of busywork."
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "4e5f7225-e768-4447-adf3-f65f5cff66b4",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-05-17T06:21:01.826Z",
+      "updatedAt": "2025-05-17T06:21:01.826Z",
+      "role": "workflow:owner",
+      "workflowId": "zoOizAS01zmPIqyf",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

@@ -1,0 +1,1786 @@
+{
+  "createdAt": "2025-08-19T13:04:22.144Z",
+  "updatedAt": "2025-08-31T15:18:01.499Z",
+  "id": "UqO9W7kooGkLedPV",
+  "name": "WarmForge - Daily Scheduler",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1440,
+        144
+      ],
+      "id": "c319107c-01a3-42e7-825d-f32c44013f13",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "SendPoolA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1216,
+        -96
+      ],
+      "id": "ea929b97-206e-4ef9-b5bb-acd6e47ba729",
+      "name": "Get Senders",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 868955174,
+          "mode": "list",
+          "cachedResultName": "WarmPoolA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8/edit#gid=868955174"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1216,
+        96
+      ],
+      "id": "b5654bc4-965b-44af-a24c-73c600e4aec8",
+      "name": "Get Warmers",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -768,
+        0
+      ],
+      "id": "b0a00745-6ef1-44df-96b2-5ccd4defcd69",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { senders: $input.all().map(i => i.json) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -992,
+        -96
+      ],
+      "id": "94b7ef87-987f-4c90-b049-1ee96323c844",
+      "name": "Wrap Senders"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { warmers: $input.all().map(i => i.json) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -992,
+        96
+      ],
+      "id": "27b5f4bc-0dbf-4066-b4e3-11215cf193d3",
+      "name": "Wrap Warmers"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1-5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1440,
+        -144
+      ],
+      "id": "36951aa4-e46f-45ca-ab86-e08ced350a52",
+      "name": "M-F @ 8AM",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -112,
+        -208
+      ],
+      "id": "5d8be984-72ba-4f9e-b1f4-7720cf62c265",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        80
+      ],
+      "id": "bff6806b-da0c-44aa-992c-f974855e828a"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        272,
+        96
+      ],
+      "id": "82118be1-1565-42b2-be92-e3cab6d90505",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "fkd34VceBlAS0mMp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -208
+      ],
+      "id": "141f0a3e-834e-4009-b8ed-5bac52b0a617",
+      "name": "Limit",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Seed (do not copy):\nSubject: Signed up ≠ Showed up\n\nNo-shows aren’t “just part of doing business.” They’re a leak. \n\nIt’s the gap between “Booked” and “Showed Up” that’s killing your funnel. \n\nWe built DropStop to stop that leak cold \nNo new platforms. No learning curve. \n\nDropStop is the only thing standing between you and a calendar full of no-shows.\n\nReply “Drop Zone” and I’ll send over the 90-second breakdown. \n\n– Jose\n\nContext:\n\nSender name: {{ $json.sender_name.toSentenceCase() }} \nFrom: {{ $json.sender_address }}\nTo: {{ $json.warmer_address || $json.warmer_adress }}\nReply mode: initial_outreach\nVariation seed (do not output): {{ $json.qid }}\n\nOutput JSON only: \n\n{\n\"subject\": \"sample subject line\",\n\"body\": sample body text\"\n}\n",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You generate production-style cold outreach for DropStop. Constraints: plain text only, no links, no HTML, no images, no tracking. Tone: direct, human, Spartan. Length: 60–110 words. Subject ≤ 65 chars. Keep theme: fixing the Booked→Showed Up leak (no-shows). One soft reply CTA only (e.g., Reply \\\"Drop Zone\\\" for the 90-sec breakdown). 1–3 short paragraphs. No emojis. Avoid copying the seed verbatim."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        128,
+        -160
+      ],
+      "id": "0a11e29f-33db-4f5f-899d-ff3bf61af725",
+      "name": "Build Initial Outbound Message"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "\n{\n\"subject\": \"sample subject line\",\n\"body\": \"sample body text\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        96
+      ],
+      "id": "c9956680-dfde-4d1e-8b85-b790d49059ae",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 912173888,
+          "mode": "list",
+          "cachedResultName": "MessageQueue",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SaUa5mWSrjropPHF1Be9CqtFch2t0qdUZE7XmNdbbU8/edit#gid=912173888"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "sid": "={{ $('Loop Over Items').item.json.sid }}",
+            "wid": "={{ $('Loop Over Items').item.json.wid }}",
+            "send_time": "={{ $('Loop Over Items').item.json.send_time }}",
+            "reply_type": "={{ $('Loop Over Items').item.json.reply_type }}",
+            "thread_depth": "={{ $('Loop Over Items').item.json.thread_depth }}",
+            "engine": "={{ $('Loop Over Items').item.json.engine }}",
+            "tz_anchor": "={{ $('Loop Over Items').item.json.tz_anchor }}",
+            "schedule_window_et": "={{ $('Loop Over Items').item.json.schedule_window_et }}",
+            "created_at": "={{ $('Loop Over Items').item.json.created_at }}",
+            "qid": "={{ $('Loop Over Items').item.json.qid }}",
+            "status": "queued",
+            "sender_name": "={{ $('Loop Over Items').item.json.sender_name.toTitleCase() }}",
+            "sender_address": "={{ $('Loop Over Items').item.json.sender_address }}",
+            "warmer_name": "={{ $('Loop Over Items').item.json.warmer_name.toTitleCase() }}",
+            "warmer_address": "={{ $('Loop Over Items').item.json.warmer_address }}",
+            "subject": "={{ $json.output.subject }}",
+            "body": "={{ $json.output.body }}",
+            "direction": "={{ $('Loop Over Items').item.json.direction }}",
+            "thread_id": "={{ $('Loop Over Items').item.json.thread_id }}",
+            "thread_index": "={{ $('Loop Over Items').item.json.thread_index }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "qid",
+              "displayName": "qid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sid",
+              "displayName": "sid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sender_address",
+              "displayName": "sender_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sender_name",
+              "displayName": "sender_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "wid",
+              "displayName": "wid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "warmer_address",
+              "displayName": "warmer_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "warmer_name",
+              "displayName": "warmer_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "send_time",
+              "displayName": "send_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply_type",
+              "displayName": "reply_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "in_reply_to_message_id",
+              "displayName": "in_reply_to_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "references",
+              "displayName": "references",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "parent_qid",
+              "displayName": "parent_qid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "direction",
+              "displayName": "direction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "thread_depth",
+              "displayName": "thread_depth",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "thread_id",
+              "displayName": "thread_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "thread_index",
+              "displayName": "thread_index",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "attempts",
+              "displayName": "attempts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "last_error",
+              "displayName": "last_error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "schedule_window_et",
+              "displayName": "schedule_window_et",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tz_anchor",
+              "displayName": "tz_anchor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "engine",
+              "displayName": "engine",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "provider_message_id",
+              "displayName": "provider_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sent_at",
+              "displayName": "sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        -112
+      ],
+      "id": "793ba644-0646-4889-a61d-a82ab9d1f9bc",
+      "name": "Add Row To MessageQueue",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lN2tnTCBuaO6F6Rx",
+          "name": "jmadarieta3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\n/**\n * WarmForge — Build daily warmup tasks (with full to/from addressing)\n * Inputs: { senders: [...], warmers: [...] }\n */\n\nfunction getInputs(items) {\n  if (items.length >= 2 && items[0].json.senders && items[1].json.warmers) {\n    return { senders: items[0].json.senders, warmers: items[1].json.warmers };\n  }\n  if (items.length === 1 && items[0].json.senders && items[0].json.warmers) {\n    return { senders: items[0].json.senders, warmers: items[0].json.warmers };\n  }\n  throw new Error('Missing senders or warmers input.');\n}\n\n// Time helpers\nfunction getNowET() {\n  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));\n}\n\nfunction getRandomDelayMs(minMinutes, maxMinutes) {\n  const minMs = minMinutes * 60 * 1000;\n  const maxMs = maxMinutes * 60 * 1000;\n  return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;\n}\n\nfunction isWithinETWindow(date, startHour = 9, endHour = 16) {\n  const et = new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' }));\n  const hour = et.getHours();\n  return hour >= startHour && hour < endHour;\n}\n\nfunction getNextValidETTime(anchor, minDelayMins = 0) {\n  let candidate = new Date(anchor.getTime() + minDelayMins * 60 * 1000);\n  while (!isWithinETWindow(candidate)) {\n    candidate = new Date(candidate.getTime() + 15 * 60 * 1000); // Add 15 min until within ET window\n  }\n  return candidate;\n}\n\nfunction buildSchedule({ senders, warmers }) {\n  const output = [];\n\n  const outboundCount = {};\n  const maxSends = {};\n\n  for (const s of senders) {\n    outboundCount[s.sender_address] = 0;\n    maxSends[s.sender_address] = Number(s.max_daily_sends ?? 0);\n  }\n\n  const pairs = [];\n  for (const s of senders) {\n    for (const w of warmers) {\n      if (s.sender_address !== w.warmer_address) {\n        pairs.push({ sender: s, warmer: w });\n      }\n    }\n  }\n\n  const getThreadId = () => `t-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;\n  const getQID = () => `wf-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;\n\n  const now = getNowET();\n  const threadTypes = ['single', 'thread'];\n\n  for (const { sender, warmer } of pairs) {\n    const senderEmail = sender.sender_address;\n    const max = maxSends[senderEmail] ?? 0;\n    let count = outboundCount[senderEmail];\n\n    let replyType, threadDepth, projectedOutbounds;\n\n    let attempts = 0;\n    do {\n      replyType = threadTypes[Math.floor(Math.random() * threadTypes.length)];\n      threadDepth = replyType === 'single' ? 2 : Math.floor(Math.random() * 3) * 2 + 2; // 2,4,6\n      projectedOutbounds = Math.ceil(threadDepth / 2);\n      attempts++;\n      if (attempts > 10) break;\n    } while (count + projectedOutbounds > max);\n\n    if (count + projectedOutbounds > max) continue;\n\n    const threadId = getThreadId();\n    let prevQID = null;\n    let anchor = getNextValidETTime(now, Math.floor(Math.random() * 60)); // Start 0–60 mins from now\n\n    for (let i = 0; i < threadDepth; i++) {\n      const direction = i % 2 === 0 ? 'outbound' : 'inbound';\n      const qid = getQID();\n\n      const isOutbound = direction === 'outbound';\n      if (isOutbound) {\n        if (outboundCount[senderEmail] >= max) break;\n        outboundCount[senderEmail]++;\n      }\n\n      const msg = {\n        qid,\n        parent_qid: prevQID,\n        sid: sender.sid,\n        wid: warmer.wid,\n        thread_id: threadId,\n        thread_index: i,\n        thread_depth: threadDepth,\n        reply_type: replyType,\n        direction,\n        sender_address: sender.sender_address,\n        sender_name: sender.sender_name,\n        warmer_address: warmer.warmer_address,\n        warmer_name: warmer.warmer_name,\n        domain: sender.domain,\n        send_time: getNextValidETTime(anchor).toISOString(),\n        created_at: new Date().toISOString(),\n        schedule_window_et: '09:00–16:00',\n        tz_anchor: 'America/New_York',\n        engine: 'WarmForge',\n        status: 'queued',\n      };\n\n      output.push({ json: msg });\n\n      anchor = new Date(new Date(msg.send_time).getTime() + getRandomDelayMs(30, 180));\n      prevQID = qid;\n    }\n  }\n\n  return output;\n}\n\nreturn buildSchedule(getInputs(items));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        0
+      ],
+      "id": "3eb89af9-01cf-4139-9c6e-127efb19e882",
+      "name": "Set Conversations"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        -112
+      ],
+      "id": "0e88ddfc-e2b9-4ed9-a0d1-5ecea12a95c5",
+      "name": "Wait",
+      "webhookId": "c26aefa5-0b41-48e5-aacc-18b69ca2ba57"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get Senders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Warmers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Senders": {
+      "main": [
+        [
+          {
+            "node": "Wrap Senders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Warmers": {
+      "main": [
+        [
+          {
+            "node": "Wrap Warmers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wrap Senders": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wrap Warmers": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Set Conversations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M-F @ 8AM": {
+      "main": [
+        [
+          {
+            "node": "Get Senders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Warmers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Build Initial Outbound Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Build Initial Outbound Message",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Initial Outbound Message": {
+      "main": [
+        [
+          {
+            "node": "Add Row To MessageQueue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Build Initial Outbound Message",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Row To MessageQueue": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Conversations": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Build Initial Outbound Message": [
+      {
+        "json": {
+          "output": {
+            "subject": "Stop Losing Booked Appointments",
+            "body": "No-shows are a serious issue. They create a gap between what you book and what you actually fill. This leak can drain your resources and hurt your bottom line.\n\nDropStop is designed to seal that gap without adding complexity. It’s a straightforward solution to help you convert more appointments.\n\nReply \"Drop Zone\" for a quick 90-second overview."
+          }
+        }
+      }
+    ],
+    "Set Conversations": [
+      {
+        "json": {
+          "qid": "wf-1755716547399-724725",
+          "parent_qid": null,
+          "sid": 1,
+          "wid": 1,
+          "thread_id": "t-1755716547399-475707",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "emily@dimensionsevenai.com",
+          "sender_name": "emily",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenai.com",
+          "send_time": "2025-08-20T15:52:27.000Z",
+          "created_at": "2025-08-20T19:02:27.400Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547400-10761",
+          "parent_qid": "wf-1755716547399-724725",
+          "sid": 1,
+          "wid": 1,
+          "thread_id": "t-1755716547399-475707",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "emily@dimensionsevenai.com",
+          "sender_name": "emily",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenai.com",
+          "send_time": "2025-08-20T17:19:56.548Z",
+          "created_at": "2025-08-20T19:02:27.400Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547400-840972",
+          "parent_qid": null,
+          "sid": 1,
+          "wid": 2,
+          "thread_id": "t-1755716547400-479184",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "emily@dimensionsevenai.com",
+          "sender_name": "emily",
+          "warmer_address": "tiffany.halstead@nextmoveai.co",
+          "warmer_name": "tiffany",
+          "domain": "dimensionsevenai.com",
+          "send_time": "2025-08-20T15:33:27.000Z",
+          "created_at": "2025-08-20T19:02:27.400Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547400-674017",
+          "parent_qid": "wf-1755716547400-840972",
+          "sid": 1,
+          "wid": 2,
+          "thread_id": "t-1755716547400-479184",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "emily@dimensionsevenai.com",
+          "sender_name": "emily",
+          "warmer_address": "tiffany.halstead@nextmoveai.co",
+          "warmer_name": "tiffany",
+          "domain": "dimensionsevenai.com",
+          "send_time": "2025-08-20T16:38:31.276Z",
+          "created_at": "2025-08-20T19:02:27.400Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547401-674406",
+          "parent_qid": null,
+          "sid": 2,
+          "wid": 1,
+          "thread_id": "t-1755716547400-608373",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "hannah@dimensionsevenai.com",
+          "sender_name": "hannah",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenai.com",
+          "send_time": "2025-08-20T15:41:27.000Z",
+          "created_at": "2025-08-20T19:02:27.401Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547401-651713",
+          "parent_qid": "wf-1755716547401-674406",
+          "sid": 2,
+          "wid": 1,
+          "thread_id": "t-1755716547400-608373",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "hannah@dimensionsevenai.com",
+          "sender_name": "hannah",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenai.com",
+          "send_time": "2025-08-20T16:24:27.335Z",
+          "created_at": "2025-08-20T19:02:27.401Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547401-183985",
+          "parent_qid": null,
+          "sid": 3,
+          "wid": 1,
+          "thread_id": "t-1755716547401-927247",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "lauren@dimensionsevenai.com",
+          "sender_name": "lauren",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenai.com",
+          "send_time": "2025-08-20T15:54:27.000Z",
+          "created_at": "2025-08-20T19:02:27.402Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547402-912214",
+          "parent_qid": "wf-1755716547401-183985",
+          "sid": 3,
+          "wid": 1,
+          "thread_id": "t-1755716547401-927247",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "lauren@dimensionsevenai.com",
+          "sender_name": "lauren",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenai.com",
+          "send_time": "2025-08-20T18:40:31.734Z",
+          "created_at": "2025-08-20T19:02:27.402Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547402-127942",
+          "parent_qid": null,
+          "sid": 4,
+          "wid": 1,
+          "thread_id": "t-1755716547402-699542",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "thread",
+          "direction": "outbound",
+          "sender_address": "megan@dimensionsevenai.com",
+          "sender_name": "megan",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenai.com",
+          "send_time": "2025-08-20T15:57:27.000Z",
+          "created_at": "2025-08-20T19:02:27.402Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547402-163569",
+          "parent_qid": "wf-1755716547402-127942",
+          "sid": 4,
+          "wid": 1,
+          "thread_id": "t-1755716547402-699542",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "thread",
+          "direction": "inbound",
+          "sender_address": "megan@dimensionsevenai.com",
+          "sender_name": "megan",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenai.com",
+          "send_time": "2025-08-20T17:26:59.701Z",
+          "created_at": "2025-08-20T19:02:27.402Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547402-776414",
+          "parent_qid": null,
+          "sid": 4,
+          "wid": 2,
+          "thread_id": "t-1755716547402-129011",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "megan@dimensionsevenai.com",
+          "sender_name": "megan",
+          "warmer_address": "tiffany.halstead@nextmoveai.co",
+          "warmer_name": "tiffany",
+          "domain": "dimensionsevenai.com",
+          "send_time": "2025-08-20T15:49:27.000Z",
+          "created_at": "2025-08-20T19:02:27.403Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547403-457895",
+          "parent_qid": "wf-1755716547402-776414",
+          "sid": 4,
+          "wid": 2,
+          "thread_id": "t-1755716547402-129011",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "megan@dimensionsevenai.com",
+          "sender_name": "megan",
+          "warmer_address": "tiffany.halstead@nextmoveai.co",
+          "warmer_name": "tiffany",
+          "domain": "dimensionsevenai.com",
+          "send_time": "2025-08-20T18:42:28.950Z",
+          "created_at": "2025-08-20T19:02:27.403Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547403-292518",
+          "parent_qid": null,
+          "sid": 5,
+          "wid": 1,
+          "thread_id": "t-1755716547403-631378",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "emily@dimensionsevenautomations.com",
+          "sender_name": "emily",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenautomations.com",
+          "send_time": "2025-08-20T15:37:27.000Z",
+          "created_at": "2025-08-20T19:02:27.403Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547403-609653",
+          "parent_qid": "wf-1755716547403-292518",
+          "sid": 5,
+          "wid": 1,
+          "thread_id": "t-1755716547403-631378",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "emily@dimensionsevenautomations.com",
+          "sender_name": "emily",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenautomations.com",
+          "send_time": "2025-08-20T18:07:59.673Z",
+          "created_at": "2025-08-20T19:02:27.403Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547403-225614",
+          "parent_qid": null,
+          "sid": 5,
+          "wid": 2,
+          "thread_id": "t-1755716547403-652751",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "emily@dimensionsevenautomations.com",
+          "sender_name": "emily",
+          "warmer_address": "tiffany.halstead@nextmoveai.co",
+          "warmer_name": "tiffany",
+          "domain": "dimensionsevenautomations.com",
+          "send_time": "2025-08-20T15:06:27.000Z",
+          "created_at": "2025-08-20T19:02:27.403Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547403-107710",
+          "parent_qid": "wf-1755716547403-225614",
+          "sid": 5,
+          "wid": 2,
+          "thread_id": "t-1755716547403-652751",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "emily@dimensionsevenautomations.com",
+          "sender_name": "emily",
+          "warmer_address": "tiffany.halstead@nextmoveai.co",
+          "warmer_name": "tiffany",
+          "domain": "dimensionsevenautomations.com",
+          "send_time": "2025-08-20T16:52:59.401Z",
+          "created_at": "2025-08-20T19:02:27.404Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547404-548832",
+          "parent_qid": null,
+          "sid": 6,
+          "wid": 1,
+          "thread_id": "t-1755716547404-768971",
+          "thread_index": 0,
+          "thread_depth": 4,
+          "reply_type": "thread",
+          "direction": "outbound",
+          "sender_address": "hannah@dimensionsevenautomations.com",
+          "sender_name": "hannah",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenautomations.com",
+          "send_time": "2025-08-20T15:41:27.000Z",
+          "created_at": "2025-08-20T19:02:27.404Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547404-864937",
+          "parent_qid": "wf-1755716547404-548832",
+          "sid": 6,
+          "wid": 1,
+          "thread_id": "t-1755716547404-768971",
+          "thread_index": 1,
+          "thread_depth": 4,
+          "reply_type": "thread",
+          "direction": "inbound",
+          "sender_address": "hannah@dimensionsevenautomations.com",
+          "sender_name": "hannah",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenautomations.com",
+          "send_time": "2025-08-20T16:20:57.200Z",
+          "created_at": "2025-08-20T19:02:27.404Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547404-804176",
+          "parent_qid": "wf-1755716547404-864937",
+          "sid": 6,
+          "wid": 1,
+          "thread_id": "t-1755716547404-768971",
+          "thread_index": 2,
+          "thread_depth": 4,
+          "reply_type": "thread",
+          "direction": "outbound",
+          "sender_address": "hannah@dimensionsevenautomations.com",
+          "sender_name": "hannah",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenautomations.com",
+          "send_time": "2025-08-20T17:16:33.442Z",
+          "created_at": "2025-08-20T19:02:27.404Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547404-780983",
+          "parent_qid": "wf-1755716547404-804176",
+          "sid": 6,
+          "wid": 1,
+          "thread_id": "t-1755716547404-768971",
+          "thread_index": 3,
+          "thread_depth": 4,
+          "reply_type": "thread",
+          "direction": "inbound",
+          "sender_address": "hannah@dimensionsevenautomations.com",
+          "sender_name": "hannah",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenautomations.com",
+          "send_time": "2025-08-20T18:03:44.861Z",
+          "created_at": "2025-08-20T19:02:27.404Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547404-479910",
+          "parent_qid": null,
+          "sid": 7,
+          "wid": 1,
+          "thread_id": "t-1755716547404-312205",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "lauren@dimensionsevenautomations.com",
+          "sender_name": "lauren",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenautomations.com",
+          "send_time": "2025-08-20T15:41:27.000Z",
+          "created_at": "2025-08-20T19:02:27.405Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547405-372626",
+          "parent_qid": "wf-1755716547404-479910",
+          "sid": 7,
+          "wid": 1,
+          "thread_id": "t-1755716547404-312205",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "lauren@dimensionsevenautomations.com",
+          "sender_name": "lauren",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenautomations.com",
+          "send_time": "2025-08-20T16:21:35.979Z",
+          "created_at": "2025-08-20T19:02:27.405Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547405-997308",
+          "parent_qid": null,
+          "sid": 8,
+          "wid": 1,
+          "thread_id": "t-1755716547405-901809",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "megan@dimensionsevenautomations.com",
+          "sender_name": "megan",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenautomations.com",
+          "send_time": "2025-08-20T15:48:27.000Z",
+          "created_at": "2025-08-20T19:02:27.405Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547405-229331",
+          "parent_qid": "wf-1755716547405-997308",
+          "sid": 8,
+          "wid": 1,
+          "thread_id": "t-1755716547405-901809",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "megan@dimensionsevenautomations.com",
+          "sender_name": "megan",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "dimensionsevenautomations.com",
+          "send_time": "2025-08-20T18:30:30.161Z",
+          "created_at": "2025-08-20T19:02:27.405Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547406-747381",
+          "parent_qid": null,
+          "sid": 9,
+          "wid": 1,
+          "thread_id": "t-1755716547405-994212",
+          "thread_index": 0,
+          "thread_depth": 4,
+          "reply_type": "thread",
+          "direction": "outbound",
+          "sender_address": "emily@thedimensionsevensystems.com",
+          "sender_name": "emily",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T15:51:27.000Z",
+          "created_at": "2025-08-20T19:02:27.406Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547406-69947",
+          "parent_qid": "wf-1755716547406-747381",
+          "sid": 9,
+          "wid": 1,
+          "thread_id": "t-1755716547405-994212",
+          "thread_index": 1,
+          "thread_depth": 4,
+          "reply_type": "thread",
+          "direction": "inbound",
+          "sender_address": "emily@thedimensionsevensystems.com",
+          "sender_name": "emily",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T17:52:55.165Z",
+          "created_at": "2025-08-20T19:02:27.406Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547406-128440",
+          "parent_qid": "wf-1755716547406-69947",
+          "sid": 9,
+          "wid": 1,
+          "thread_id": "t-1755716547405-994212",
+          "thread_index": 2,
+          "thread_depth": 4,
+          "reply_type": "thread",
+          "direction": "outbound",
+          "sender_address": "emily@thedimensionsevensystems.com",
+          "sender_name": "emily",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T19:05:05.171Z",
+          "created_at": "2025-08-20T19:02:27.406Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547406-810110",
+          "parent_qid": "wf-1755716547406-128440",
+          "sid": 9,
+          "wid": 1,
+          "thread_id": "t-1755716547405-994212",
+          "thread_index": 3,
+          "thread_depth": 4,
+          "reply_type": "thread",
+          "direction": "inbound",
+          "sender_address": "emily@thedimensionsevensystems.com",
+          "sender_name": "emily",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-21T13:00:32.483Z",
+          "created_at": "2025-08-20T19:02:27.415Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547415-553958",
+          "parent_qid": null,
+          "sid": 10,
+          "wid": 1,
+          "thread_id": "t-1755716547415-147285",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "hannah@thedimensionsevensystems.com",
+          "sender_name": "hannah",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T15:05:27.000Z",
+          "created_at": "2025-08-20T19:02:27.415Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547415-136635",
+          "parent_qid": "wf-1755716547415-553958",
+          "sid": 10,
+          "wid": 1,
+          "thread_id": "t-1755716547415-147285",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "hannah@thedimensionsevensystems.com",
+          "sender_name": "hannah",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T16:01:37.596Z",
+          "created_at": "2025-08-20T19:02:27.415Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547416-142579",
+          "parent_qid": null,
+          "sid": 10,
+          "wid": 2,
+          "thread_id": "t-1755716547415-241561",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "hannah@thedimensionsevensystems.com",
+          "sender_name": "hannah",
+          "warmer_address": "tiffany.halstead@nextmoveai.co",
+          "warmer_name": "tiffany",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T15:29:27.000Z",
+          "created_at": "2025-08-20T19:02:27.416Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547416-638390",
+          "parent_qid": "wf-1755716547416-142579",
+          "sid": 10,
+          "wid": 2,
+          "thread_id": "t-1755716547415-241561",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "hannah@thedimensionsevensystems.com",
+          "sender_name": "hannah",
+          "warmer_address": "tiffany.halstead@nextmoveai.co",
+          "warmer_name": "tiffany",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T16:45:30.206Z",
+          "created_at": "2025-08-20T19:02:27.416Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547416-269741",
+          "parent_qid": null,
+          "sid": 11,
+          "wid": 1,
+          "thread_id": "t-1755716547416-648455",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "thread",
+          "direction": "outbound",
+          "sender_address": "lauren@thedimensionsevensystems.com",
+          "sender_name": "lauren",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T15:53:27.000Z",
+          "created_at": "2025-08-20T19:02:27.416Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547416-902848",
+          "parent_qid": "wf-1755716547416-269741",
+          "sid": 11,
+          "wid": 1,
+          "thread_id": "t-1755716547416-648455",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "thread",
+          "direction": "inbound",
+          "sender_address": "lauren@thedimensionsevensystems.com",
+          "sender_name": "lauren",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T16:45:02.588Z",
+          "created_at": "2025-08-20T19:02:27.416Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547416-650537",
+          "parent_qid": null,
+          "sid": 11,
+          "wid": 2,
+          "thread_id": "t-1755716547416-816331",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "lauren@thedimensionsevensystems.com",
+          "sender_name": "lauren",
+          "warmer_address": "tiffany.halstead@nextmoveai.co",
+          "warmer_name": "tiffany",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T15:11:27.000Z",
+          "created_at": "2025-08-20T19:02:27.417Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547417-861350",
+          "parent_qid": "wf-1755716547416-650537",
+          "sid": 11,
+          "wid": 2,
+          "thread_id": "t-1755716547416-816331",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "lauren@thedimensionsevensystems.com",
+          "sender_name": "lauren",
+          "warmer_address": "tiffany.halstead@nextmoveai.co",
+          "warmer_name": "tiffany",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T17:18:05.401Z",
+          "created_at": "2025-08-20T19:02:27.417Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547417-828069",
+          "parent_qid": null,
+          "sid": 12,
+          "wid": 1,
+          "thread_id": "t-1755716547417-551974",
+          "thread_index": 0,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "outbound",
+          "sender_address": "megan@thedimensionsevensystems.com",
+          "sender_name": "megan",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T15:27:27.000Z",
+          "created_at": "2025-08-20T19:02:27.417Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      },
+      {
+        "json": {
+          "qid": "wf-1755716547417-767164",
+          "parent_qid": "wf-1755716547417-828069",
+          "sid": 12,
+          "wid": 1,
+          "thread_id": "t-1755716547417-551974",
+          "thread_index": 1,
+          "thread_depth": 2,
+          "reply_type": "single",
+          "direction": "inbound",
+          "sender_address": "megan@thedimensionsevensystems.com",
+          "sender_name": "megan",
+          "warmer_address": "lawrence@nextmoveai.co",
+          "warmer_name": "lawrence",
+          "domain": "thedimensionsevensystems.com",
+          "send_time": "2025-08-20T16:24:22.551Z",
+          "created_at": "2025-08-20T19:02:27.417Z",
+          "schedule_window_et": "09:00–16:00",
+          "tz_anchor": "America/New_York",
+          "engine": "WarmForge",
+          "status": "queued"
+        }
+      }
+    ]
+  },
+  "versionId": "30d53572-619e-4d1b-8789-fb8bc1ff4898",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-19T13:04:22.144Z",
+      "updatedAt": "2025-08-19T13:04:22.144Z",
+      "role": "workflow:owner",
+      "workflowId": "UqO9W7kooGkLedPV",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

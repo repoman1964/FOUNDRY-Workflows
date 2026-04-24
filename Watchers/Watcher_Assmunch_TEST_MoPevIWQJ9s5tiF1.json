@@ -1,0 +1,121 @@
+{
+  "createdAt": "2025-08-26T19:06:11.842Z",
+  "updatedAt": "2025-08-26T20:34:30.779Z",
+  "id": "MoPevIWQJ9s5tiF1",
+  "name": "Watcher Assmunch TEST",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "id": "0f5532f9-36ba-4bef-86c7-30d607400b15",
+      "name": "Jira",
+      "webhookId": "string",
+      "disabled": true,
+      "notesInFlow": true,
+      "notes": "string",
+      "type": "n8n-nodes-base.Jira",
+      "typeVersion": 1,
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "retryOnFail": false,
+      "maxTries": 0,
+      "waitBetweenTries": 0,
+      "onError": "stopWorkflow",
+      "position": [
+        -100,
+        80
+      ],
+      "parameters": {
+        "additionalProperties": {}
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "35",
+          "name": "jiraApi"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "main": [
+      {
+        "node": "Jira",
+        "type": "main",
+        "index": 0
+      }
+    ]
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "errorWorkflow": "VzqKEW0ShTXA5vPj",
+    "timezone": "America/New_York",
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "lastId": 1
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "9970784c-226b-488b-bb52-eb279fd62b64",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-26T19:06:11.842Z",
+      "updatedAt": "2025-08-26T19:06:11.842Z",
+      "role": "workflow:owner",
+      "workflowId": "MoPevIWQJ9s5tiF1",
+      "projectId": "DkSa9uSCCmIe86kA",
+      "project": {
+        "createdAt": "2024-10-23T19:43:31.607Z",
+        "updatedAt": "2024-10-23T19:44:45.428Z",
+        "id": "DkSa9uSCCmIe86kA",
+        "name": "Jose Madarieta <jmadarieta3@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2024-10-23T19:43:31.607Z",
+            "updatedAt": "2024-10-23T19:43:31.607Z",
+            "userId": "a635a4d8-fd37-4680-89ca-863732d6171c",
+            "projectId": "DkSa9uSCCmIe86kA",
+            "user": {
+              "createdAt": "2024-10-23T19:43:29.785Z",
+              "updatedAt": "2025-11-12T16:42:51.583Z",
+              "id": "a635a4d8-fd37-4680-89ca-863732d6171c",
+              "email": "jmadarieta3@gmail.com",
+              "firstName": "Jose",
+              "lastName": "Madarieta",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-10-23T19:45:00.140Z",
+                "personalization_survey_n8n_version": "1.63.4"
+              },
+              "settings": {
+                "userActivated": true,
+                "isOnboarded": true,
+                "firstSuccessfulWorkflowId": "wKa0XTH9lBKlDoXE",
+                "userActivatedAt": 1729714072281,
+                "npsSurvey": {
+                  "waitingForResponse": true,
+                  "ignoredCount": 1,
+                  "lastShownAt": 1762955552971
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-11-12",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
